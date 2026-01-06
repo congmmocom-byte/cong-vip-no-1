@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Nạp tiền</title>
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">My Panel</div>
+      <nav class="menu">
+        <div class="menu-title">Trang</div>
+        <a href="index.html">Dashboard</a>
+        <a class="active" href="topup.html">Nạp tiền</a>
+        <a href="contact.html">Liên hệ</a>
+
+        <div class="menu-title">Hệ thống</div>
+        <a href="#history">Lịch sử nạp</a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="left">
+          <button id="btnToggle" class="icon-btn" aria-label="Toggle sidebar">☰</button>
+          <div class="breadcrumb">Nạp tiền</div>
+        </div>
+      </header>
+
+      <section class="content">
+        <div class="grid">
+          <div class="panel">
+            <div class="panel-title">USDT (TRC20)</div>
+            <div class="muted">Địa chỉ ví:</div>
+
+            <div class="copy-row">
+              <code id="usdtAddr" class="copy-box">0x3976d5654F208Df3Bc38B50567D49AcE80234A59</code>
+              <button class="btn btn-primary" data-copy="#usdtAddr">Copy</button>
+            </div>
+
+            <div class="muted" style="margin-top:10px;">
+              Lưu ý: kiểm tra đúng mạng trước khi chuyển.
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-title">MB Bank</div>
+            <div class="muted">Thông tin chuyển khoản:</div>
+
+            <div class="copy-row">
+              <code id="mbStk" class="copy-box">STK: (chưa điền)</code>
+              <button class="btn" data-copy="#mbStk">Copy</button>
+            </div>
+
+            <div class="copy-row">
+              <code id="mbName" class="copy-box">Chủ TK: (chưa điền)</code>
+              <button class="btn" data-copy="#mbName">Copy</button>
+            </div>
+
+            <div class="copy-row">
+              <code id="mbNote" class="copy-box">Nội dung: NAP username</code>
+              <button class="btn" data-copy="#mbNote">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel" id="history" style="margin-top:12px;">
+          <div class="panel-title">Lịch sử nạp</div>
+          <div class="muted">Chưa có dữ liệu.</div>
+        </div>
+
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      </section>
+
+      <footer class="footer">© <span id="year"></span> My Panel</footer>
+    </main>
+  </div>
+
+  <!-- Floating contact buttons -->
+  <div class="contact-float" aria-label="Liên hệ nhanh">
+    <a class="cf-btn" href="https://www.facebook.com/share/1GKrb2cLkD/?mibextid=wwXIfr" target="_blank" rel="noopener"
+       title="Facebook" aria-label="Facebook">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 12a10 10 0 1 0-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.5-3.88 3.78-3.88 1.1 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.62.77-1.62 1.56V12h2.76l-.44 2.89h-2.32v6.99A10 10 0 0 0 22 12z"/></svg>
+    </a>
+    <a class="cf-btn" href="https://zalo.me/0365355610" target="_blank" rel="noopener"
+       title="Zalo" aria-label="Zalo">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v12H7l-3 3V4zm3 5h10v2H7V9zm0-3h10v2H7V6zm0 6h7v2H7v-2z"/></svg>
+    </a>
+    <a class="cf-btn" href="https://t.me/congkakakak" target="_blank" rel="noopener"
+       title="Telegram" aria-label="Telegram">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21.9 4.6 2.9 11.9c-1.3.5-1.3 1.2-.2 1.5l4.9 1.5 1.9 5.7c.2.6.1.8.8.8.6 0 .9-.3 1.2-.6l2.4-2.3 5 3.7c.9.5 1.6.2 1.8-.9l3.2-15.1c.3-1.3-.5-1.9-1.9-1.4zM9.5 14.6l9.6-6c.5-.3 1-.1.6.3l-7.8 7c-.3.3-.5.7-.5 1.1l-.2 2.3-.9-3.1c-.1-.4 0-1 .2-1.6z"/></svg>
+    </a>
+  </div>
+
+  <script src="assets/js/app.js"></script>
+  <script>
+    const toast = document.getElementById('toast');
+    function showToast(msg){
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(()=>toast.classList.remove('show'), 1400);
+    }
+
+    document.querySelectorAll('[data-copy]').forEach(btn=>{
+      btn.addEventListener('click', async ()=>{
+        const sel = btn.getAttribute('data-copy');
+        const el = document.querySelector(sel);
+        const text = el?.textContent?.trim() || '';
+        try{
+          await navigator.clipboard.writeText(text);
+          showToast('Đã copy!');
+        }catch(e){
+          const ta = document.createElement('textarea');
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          document.execCommand('copy');
+          ta.remove();
+          showToast('Đã copy!');
+        }
+      });
+    });
+  </script>
+</body>
+</html>
