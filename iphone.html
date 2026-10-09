@@ -1,0 +1,1506 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="theme-color" content="#000000" />
+<title>iPhone ảo</title>
+<style>
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{
+  background:radial-gradient(circle at 30% 20%,#1d2b4f,#05070d 70%);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  overflow:hidden;color:#000;-webkit-user-select:none;user-select:none;
+}
+input,textarea{-webkit-user-select:text;user-select:text}
+button{font-family:inherit}
+.stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+.back-link{position:fixed;top:14px;left:16px;color:#a8b3d6;text-decoration:none;font-size:14px;z-index:5}
+.tips{position:fixed;bottom:12px;left:0;right:0;text-align:center;color:#6f7aa0;font-size:12px;z-index:5;padding:0 16px}
+
+/* ---------- Device ---------- */
+.device{
+  position:relative;width:418px;height:872px;flex:none;border-radius:68px;padding:14px;
+  background:linear-gradient(145deg,#4a4a4e,#1c1c1e);
+  box-shadow:0 0 0 2px #6b6b70,0 0 0 4px #1c1c1e,0 40px 90px rgba(0,0,0,.65);
+  transition:box-shadow .3s;
+}
+.device.torch{box-shadow:0 0 0 2px #6b6b70,0 0 0 4px #1c1c1e,0 0 140px 60px rgba(255,250,220,.55)}
+.hw{position:absolute;width:5px;background:linear-gradient(90deg,#3a3a3c,#5a5a5e);cursor:pointer;border:0;padding:0}
+.hw:active{filter:brightness(1.4)}
+.hw.power{right:-5px;top:230px;height:104px;border-radius:0 4px 4px 0}
+.hw.action{left:-5px;top:160px;height:34px;border-radius:4px 0 0 4px}
+.hw.volup{left:-5px;top:220px;height:64px;border-radius:4px 0 0 4px}
+.hw.voldown{left:-5px;top:298px;height:64px;border-radius:4px 0 0 4px}
+
+.screen{
+  position:relative;width:100%;height:100%;border-radius:54px;overflow:hidden;background:#000;isolation:isolate;
+  --bg:#f2f2f7;--fg:#000;--card:#fff;--sep:rgba(60,60,67,.22);--muted:#8e8e93;--accent:#007aff;--fill:#e5e5ea;
+  --safe-top:54px;
+}
+.screen.dark{--bg:#000;--fg:#fff;--card:#1c1c1e;--sep:rgba(84,84,88,.65);--accent:#0a84ff;--fill:#2c2c2e}
+.wallpaper{position:absolute;inset:0;background:var(--wall);background-size:cover;z-index:0}
+
+/* status bar */
+.statusbar{position:absolute;top:0;left:0;right:0;height:var(--safe-top);z-index:50;display:flex;justify-content:space-between;align-items:center;padding:6px 30px 0 46px;color:#fff;font-weight:600;font-size:16px;cursor:pointer;transition:color .2s}
+.screen.ink .statusbar{color:#000}
+.screen.locked #sbTime{visibility:hidden}
+.sb-right{display:flex;gap:6px;align-items:center}
+.sb-right svg{display:block;fill:currentColor}
+.batt{position:relative;width:26px;height:12.5px;border:1.2px solid currentColor;border-radius:4px;opacity:.95;padding:1.3px}
+.batt::after{content:"";position:absolute;right:-4px;top:3.5px;width:2px;height:4px;border-radius:0 2px 2px 0;background:currentColor;opacity:.5}
+.batt i{display:block;height:100%;border-radius:2px;background:currentColor}
+.batt.low i{background:#ff3b30}.batt.chg i{background:#34c759}
+.island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:124px;height:36px;background:#000;border-radius:20px;z-index:60;pointer-events:none}
+
+/* lock screen */
+.lock{position:absolute;inset:0;z-index:30;color:#fff;display:flex;flex-direction:column;align-items:center;padding-top:62px;background:var(--wall);background-size:cover;transition:transform .45s cubic-bezier(.2,.8,.2,1);touch-action:none}
+.lock::before{content:"";position:absolute;inset:0;background:rgba(0,0,0,.12);pointer-events:none}
+.lock.hidden{transform:translateY(-105%)!important;pointer-events:none}
+.lock > *{position:relative}
+.lock-pad{font-size:15px;opacity:.9}
+.lock-date{font-size:20px;font-weight:600;opacity:.92;margin-top:10px}
+.lock-time{font-size:94px;font-weight:700;letter-spacing:-2px;line-height:1.05;font-variant-numeric:tabular-nums}
+.lock-name{margin-top:14px;font-size:14px;opacity:.85;background:rgba(0,0,0,.18);padding:6px 14px;border-radius:14px;backdrop-filter:blur(10px)}
+.lock-bottom{position:absolute;bottom:46px;left:46px;right:46px;display:flex;justify-content:space-between}
+.lk-btn{width:50px;height:50px;border-radius:50%;background:rgba(0,0,0,.35);backdrop-filter:blur(10px);border:0;color:#fff;font-size:22px;cursor:pointer}
+.lk-btn.on{background:#fff}
+.lock-hint{position:absolute;bottom:30px;font-size:14px;opacity:.85;animation:pulse 2.4s infinite}
+@keyframes pulse{50%{opacity:.35;transform:translateY(-3px)}}
+.pass{position:absolute!important;inset:0;background:rgba(0,0,0,.45);backdrop-filter:blur(30px);-webkit-backdrop-filter:blur(30px);display:none;flex-direction:column;align-items:center;padding-top:110px;z-index:2}
+.pass.show{display:flex}
+.pass h3{font-weight:500;font-size:20px;margin:0}
+.pdots{display:flex;gap:22px;margin:20px 0 44px}
+.pdots i{width:13px;height:13px;border-radius:50%;border:1.5px solid #fff}
+.pdots i.f{background:#fff}
+.pdots.shake{animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-12px)}40%,80%{transform:translateX(12px)}}
+.pkeys{display:grid;grid-template-columns:repeat(3,78px);gap:16px 26px}
+.pass .key{background:rgba(255,255,255,.2);color:#fff}
+.pass-cancel{position:absolute;bottom:40px;right:48px;background:none;border:0;color:#fff;font-size:17px;cursor:pointer}
+
+/* home */
+.home{position:absolute;inset:0;z-index:10;padding-top:var(--safe-top)}
+.widget{margin:14px 22px 6px;padding:16px 18px;border-radius:24px;background:rgba(255,255,255,.2);backdrop-filter:blur(24px) saturate(1.5);-webkit-backdrop-filter:blur(24px) saturate(1.5);color:#fff;cursor:pointer}
+.widget b{font-size:20px;display:block}
+.widget small{opacity:.85;font-size:13px;display:block;margin-top:4px}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);row-gap:22px;padding:18px 12px 0}
+.icon{background:none;border:0;display:flex;flex-direction:column;align-items:center;gap:6px;cursor:pointer;position:relative;padding:0;color:#fff}
+.ic{width:62px;height:62px;border-radius:15px;display:grid;place-items:center;font-size:33px;box-shadow:0 2px 8px rgba(0,0,0,.25);overflow:hidden;transition:filter .1s}
+.icon:active .ic{filter:brightness(.65)}
+.lbl{font-size:12px;text-shadow:0 1px 2px rgba(0,0,0,.6);white-space:nowrap}
+.badge{position:absolute;top:-6px;right:4px;background:#ff3b30;color:#fff;font-size:13px;min-width:22px;height:22px;border-radius:11px;display:grid;place-items:center;padding:0 6px;font-weight:600;font-style:normal}
+.badge[hidden]{display:none}
+.calic{background:#fff;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#000;line-height:1}
+.calic small{color:#ff3b30;font-size:11px;font-weight:600}
+.calic b{font-size:32px;font-weight:300;margin-top:2px}
+.dock{position:absolute;left:12px;right:12px;bottom:12px;height:94px;border-radius:34px;background:rgba(255,255,255,.22);backdrop-filter:blur(24px) saturate(1.6);-webkit-backdrop-filter:blur(24px) saturate(1.6);display:grid;grid-template-columns:repeat(4,1fr);align-items:center}
+.dock .lbl{display:none}
+.pagedots{position:absolute;bottom:118px;left:0;right:0;display:flex;justify-content:center;gap:8px}
+.pagedots i{width:7px;height:7px;border-radius:50%;background:#fff}
+
+/* app window */
+.app{position:absolute;inset:0;z-index:20;background:var(--bg);color:var(--fg);display:flex;flex-direction:column;padding-top:var(--safe-top);animation:appOpen .34s cubic-bezier(.2,.85,.25,1)}
+.app.closing{animation:appClose .26s ease forwards;pointer-events:none}
+@keyframes appOpen{from{transform:scale(.12);opacity:0;border-radius:60px}to{transform:none;opacity:1;border-radius:0}}
+@keyframes appClose{to{transform:scale(.12);opacity:0;border-radius:60px}}
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-bottom:40px;min-height:0}
+.big-title{font-size:32px;font-weight:700;padding:2px 16px 10px}
+.navbar{display:flex;align-items:center;justify-content:space-between;padding:4px 8px;min-height:44px;font-size:17px;gap:8px}
+.navbar .t{font-weight:600}
+.link{color:var(--accent);background:none;border:0;font:inherit;font-size:17px;cursor:pointer;padding:6px 8px}
+.link:disabled{opacity:.35}
+.group{background:var(--card);border-radius:12px;margin:0 16px 22px;overflow:hidden}
+.ghead{color:var(--muted);font-size:13px;text-transform:uppercase;margin:0 32px 6px}
+.row{display:flex;align-items:center;gap:12px;padding:10px 16px;min-height:46px;border-bottom:.5px solid var(--sep);font-size:16px;cursor:default}
+.row:last-child{border-bottom:0}
+.row.tap{cursor:pointer}.row.tap:active{background:var(--fill)}
+.grow{flex:1;min-width:0}
+.sub{color:var(--muted);font-size:13px}
+.ell{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ricon{width:29px;height:29px;border-radius:7px;display:grid;place-items:center;font-size:16px;color:#fff;flex:none}
+.tabbar{display:flex;border-top:.5px solid var(--sep);background:var(--card);padding:6px 0 28px;flex:none}
+.tabbar button{flex:1;background:none;border:0;color:var(--muted);font-size:10px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer}
+.tabbar button span{font-size:22px;filter:grayscale(1);opacity:.7}
+.tabbar button.on{color:var(--accent)}
+.tabbar button.on span{filter:none;opacity:1}
+.input{width:100%;padding:10px 12px;border-radius:10px;border:0;background:var(--fill);color:var(--fg);font:inherit;font-size:16px;outline:none}
+.btn-pri{background:var(--accent);color:#fff;border:0;border-radius:12px;padding:11px 16px;font:inherit;font-weight:600;cursor:pointer}
+.btn-pri:active{filter:brightness(.85)}
+.empty{text-align:center;color:var(--muted);padding:40px 20px}
+.switch{position:relative;width:51px;height:31px;flex:none;display:inline-block}
+.switch input{opacity:0;position:absolute;inset:0;margin:0;cursor:pointer;z-index:1}
+.switch i{position:absolute;inset:0;border-radius:31px;background:var(--fill);transition:.2s}
+.switch i::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 4px rgba(0,0,0,.25);transition:.2s}
+.switch input:checked+i{background:#34c759}
+.switch input:checked+i::after{transform:translateX(20px)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.seg{display:flex;background:var(--fill);border-radius:9px;padding:2px;margin:0 16px 14px}
+.seg button{flex:1;border:0;background:none;color:var(--fg);padding:7px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer}
+.seg button.on{background:var(--card);box-shadow:0 2px 6px rgba(0,0,0,.15)}
+
+/* home indicator */
+.home-zone{position:absolute;bottom:0;left:25%;right:25%;height:26px;z-index:70;cursor:pointer;touch-action:none}
+.home-bar{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;border-radius:3px;background:#fff;z-index:70;pointer-events:none;transition:background .2s}
+.screen.ink .home-bar{background:#000}
+
+/* overlays */
+.dim{position:absolute;inset:0;background:#000;opacity:0;z-index:250;pointer-events:none}
+.off{position:absolute;inset:0;background:#000;z-index:300;display:none;cursor:pointer}
+.off.on{display:block}
+.banner{position:absolute;top:10px;left:10px;right:10px;z-index:90;border-radius:22px;padding:12px 14px;display:flex;gap:10px;align-items:center;background:rgba(245,245,245,.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 8px 30px rgba(0,0,0,.25);transform:translateY(-140%);transition:transform .4s cubic-bezier(.2,.9,.3,1.2);cursor:pointer;color:#000}
+.banner.show{transform:none}
+.banner .bi{width:38px;height:38px;border-radius:9px;background:#fff;display:grid;place-items:center;font-size:22px;flex:none}
+.banner b{font-size:15px}.banner p{margin:2px 0 0;font-size:14px;line-height:1.3}
+.banner small{margin-left:auto;align-self:flex-start;color:#666;font-size:12px}
+.vol-hud{position:absolute;left:10px;top:150px;width:12px;height:150px;border-radius:8px;background:rgba(80,80,80,.55);backdrop-filter:blur(10px);overflow:hidden;z-index:95;opacity:0;transition:opacity .3s;display:flex;align-items:flex-end}
+.vol-hud.show{opacity:1}
+.vol-hud i{display:block;width:100%;background:#fff}
+
+/* control center */
+.cc{position:absolute;inset:0;z-index:80;background:rgba(10,10,15,.45);backdrop-filter:blur(26px) saturate(1.4);-webkit-backdrop-filter:blur(26px) saturate(1.4);transform:translateY(-100%);opacity:0;transition:transform .38s cubic-bezier(.2,.85,.25,1),opacity .3s;padding:78px 0 0;color:#fff}
+.cc.open{transform:none;opacity:1}
+.cc-grid{display:grid;grid-template-columns:repeat(4,72px);grid-auto-rows:72px;gap:16px;justify-content:center}
+.cc-tile{background:rgba(60,60,64,.6);border-radius:22px;border:0;color:#fff;font-size:26px;cursor:pointer;display:grid;place-items:center;position:relative}
+.cc-tile.on{background:#fff;color:#000}
+.cc-conn{grid-column:span 2;grid-row:span 2;display:grid;grid-template-columns:1fr 1fr;padding:14px;gap:12px;cursor:default}
+.cc-conn button{width:54px;height:54px;border-radius:50%;border:0;background:rgba(120,120,128,.5);color:#fff;font-size:22px;cursor:pointer;justify-self:center;align-self:center}
+.cc-conn button.on{background:#0a84ff}
+.cc-conn button.on.amber{background:#ff9f0a}
+.vslider{grid-row:span 2;border-radius:22px;background:rgba(60,60,64,.6);position:relative;overflow:hidden;cursor:ns-resize;touch-action:none}
+.vslider .fill{position:absolute;left:0;right:0;bottom:0;background:#fff}
+.vslider span{position:absolute;bottom:12px;left:0;right:0;text-align:center;font-size:22px;mix-blend-mode:difference;pointer-events:none}
+.cc-info{text-align:center;margin-top:26px;font-size:13px;opacity:.7}
+
+/* call screen */
+.call{position:absolute;inset:0;z-index:85;background:linear-gradient(180deg,#4a4e5a,#15161a);color:#fff;display:flex;flex-direction:column;align-items:center;padding:100px 30px 50px;animation:fadeIn .3s}
+@keyframes fadeIn{from{opacity:0}}
+.call-av{width:96px;height:96px;border-radius:50%;background:linear-gradient(#a5a9b4,#6c707b);display:grid;place-items:center;font-size:42px;font-weight:500}
+.call h2{font-weight:400;font-size:30px;margin:14px 0 4px;text-align:center}
+.call-st{opacity:.75;margin:0;font-variant-numeric:tabular-nums}
+.call-btns{display:grid;grid-template-columns:repeat(3,76px);gap:22px 26px;margin-top:auto}
+.cb{width:76px;height:76px;border-radius:50%;border:0;background:rgba(255,255,255,.2);color:#fff;font-size:11px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer}
+.cb span{font-size:26px}
+.cb.on{background:#fff;color:#000}
+.call-end{width:76px;height:76px;border-radius:50%;border:0;background:#ff3b30;font-size:30px;margin-top:34px;cursor:pointer}
+.call-end span{display:inline-block;transform:rotate(135deg)}
+
+/* phone */
+.dial{display:flex;flex-direction:column;align-items:center;padding-top:30px}
+.dial-num{font-size:36px;min-height:46px;letter-spacing:1px;max-width:90%;overflow:hidden;white-space:nowrap}
+.dial-name{color:var(--accent);height:22px;margin-bottom:14px;font-size:15px}
+.keys{display:grid;grid-template-columns:repeat(3,78px);gap:14px 26px}
+.key{width:78px;height:78px;border-radius:50%;border:0;background:var(--fill);color:var(--fg);display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;transition:filter .1s}
+.key b{font-size:34px;font-weight:400;line-height:1}
+.key small{font-size:10px;letter-spacing:2px;font-weight:600;min-height:12px}
+.key:active{filter:brightness(.75)}
+.key.kcall{background:#34c759;font-size:30px}
+.key.del{background:none;font-size:26px}
+.real-call{margin-top:16px;color:var(--accent);font-size:14px;text-decoration:none}
+.av{width:40px;height:40px;border-radius:50%;background:linear-gradient(#a5a9b4,#6c707b);color:#fff;display:grid;place-items:center;font-weight:600;flex:none}
+.mini{border:0;background:var(--fill);border-radius:50%;width:34px;height:34px;cursor:pointer;font-size:15px;flex:none}
+
+/* messages */
+.th-row{display:flex;gap:10px;align-items:center;padding:10px 16px 10px 6px;cursor:pointer;border-bottom:.5px solid var(--sep)}
+.th-row:active{background:var(--fill)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--accent);flex:none}.dot.off{background:none}
+.th-top{display:flex;justify-content:space-between;gap:8px}
+.th-top small{color:var(--muted)}
+.th-prev{color:var(--muted);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.th-head{display:flex;flex-direction:column;align-items:center;font-size:12px;gap:2px}
+.th-head .av{width:32px;height:32px;font-size:14px}
+.bubbles{padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.bub{max-width:75%;padding:8px 13px;border-radius:19px;font-size:16px;line-height:1.3;word-wrap:break-word;white-space:pre-wrap}
+.bub.me{align-self:flex-end;background:#0a84ff;color:#fff;border-bottom-right-radius:6px}
+.bub.them{align-self:flex-start;background:var(--fill);color:var(--fg);border-bottom-left-radius:6px}
+.bub.typing{letter-spacing:3px;color:var(--muted)}
+.stamp{text-align:center;color:var(--muted);font-size:11px;margin:8px 0 4px}
+.composer{display:flex;gap:8px;padding:8px 10px 30px;border-top:.5px solid var(--sep);background:var(--bg)}
+.composer .input{border-radius:18px;padding:8px 14px;background:var(--card);border:1px solid var(--sep)}
+.send{width:34px;height:34px;border-radius:50%;border:0;background:#0a84ff;color:#fff;font-size:18px;font-weight:700;cursor:pointer;flex:none;align-self:center}
+
+/* calculator */
+.app-calc{background:#000;color:#fff;justify-content:flex-end;padding:0 16px 34px}
+.calc-disp{text-align:right;font-weight:300;padding:0 10px 10px;line-height:1;white-space:nowrap;overflow:hidden}
+.calc-keys{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.ck{aspect-ratio:1;border-radius:999px;border:0;font-size:32px;background:#333;color:#fff;cursor:pointer;transition:filter .1s,background .2s}
+.ck:active{filter:brightness(1.5)}
+.ck.fn{background:#a5a5a5;color:#000;font-size:28px}
+.ck.op{background:#ff9f0a;font-size:36px}
+.ck.op.sel{background:#fff;color:#ff9f0a}
+.ck.zero{grid-column:span 2;aspect-ratio:auto;text-align:left;padding-left:30px}
+
+/* notes */
+.app-notes{--accent:#e0a100}
+.note-edit{flex:1;border:0;outline:none;resize:none;background:var(--bg);color:var(--fg);font:inherit;font-size:17px;line-height:1.45;padding:6px 18px 40px}
+.notes-foot{display:flex;justify-content:space-between;align-items:center;padding:8px 16px 30px;border-top:.5px solid var(--sep);font-size:12px;color:var(--muted)}
+
+/* clock */
+.app-clock{background:#000;color:#fff;--card:#1c1c1e;--fill:#2c2c2e;--sep:rgba(84,84,88,.65);--fg:#fff;--accent:#ff9f0a}
+.big-time{font-size:78px;font-weight:200;text-align:center;font-variant-numeric:tabular-nums;margin:50px 0 30px}
+.circ-btns{display:flex;justify-content:space-between;padding:0 18px 18px}
+.cbtn{width:82px;height:82px;border-radius:50%;border:2px solid #000;box-shadow:0 0 0 2px #333;background:#333;color:#fff;font-size:16px;cursor:pointer}
+.cbtn.go{background:#0a3a17;color:#30d158;box-shadow:0 0 0 2px #0a3a17}
+.cbtn.stop{background:#3a0e0c;color:#ff453a;box-shadow:0 0 0 2px #3a0e0c}
+.cbtn.pause{background:#3a2a05;color:#ff9f0a;box-shadow:0 0 0 2px #3a2a05}
+.cbtn:disabled{opacity:.4}
+.laps .row{background:none;border-bottom:.5px solid var(--sep);font-variant-numeric:tabular-nums}
+.pick{display:flex;justify-content:center;gap:10px;align-items:center;margin:60px 0 40px;font-size:18px}
+.pick input{width:72px;text-align:center;font-size:36px;background:#1c1c1e;border:0;border-radius:12px;color:#fff;padding:10px 0;outline:none}
+.ring{display:block;margin:30px auto 20px}
+
+/* weather */
+.app-weather{color:#fff;background:linear-gradient(180deg,#2a6fdb,#5aa0ef 55%,#8cc2f7)}
+.app-weather.night{background:linear-gradient(180deg,#0b1a3a,#24365e 60%,#3c4f7a)}
+.w-now{text-align:center;padding:16px 0 20px}
+.w-now h2{margin:0;font-weight:400;font-size:32px}
+.w-now .temp{font-size:92px;font-weight:200;line-height:1;margin-left:24px}
+.w-card{background:rgba(255,255,255,.16);backdrop-filter:blur(12px);border-radius:16px;margin:0 16px 14px;padding:12px 14px}
+.w-card h4{margin:0 0 8px;font-size:12px;font-weight:600;opacity:.75;text-transform:uppercase}
+.hours{display:flex;gap:18px;overflow-x:auto;padding-bottom:4px}
+.hours div{text-align:center;font-size:14px;flex:none}
+.hours b{display:block;font-size:22px;margin:6px 0}
+.wday{display:flex;align-items:center;padding:8px 0;border-top:.5px solid rgba(255,255,255,.25);font-size:16px}
+.wday:first-of-type{border-top:0}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:0 16px 10px}
+.chip{flex:none;border:0;border-radius:16px;padding:6px 12px;background:rgba(255,255,255,.2);color:inherit;font-size:13px;cursor:pointer}
+.chip.on{background:#fff;color:#1a4fa0}
+
+/* calendar */
+.app-calendar{--accent:#ff3b30}
+.cal-h{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:12px;color:var(--muted);padding:0 8px}
+.cal-g{display:grid;grid-template-columns:repeat(7,1fr);padding:4px 8px;row-gap:4px}
+.cal-d{height:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:0;background:none;color:var(--fg);font-size:18px;cursor:pointer;position:relative}
+.cal-d span{width:36px;height:36px;border-radius:50%;display:grid;place-items:center}
+.cal-d.today span{color:var(--accent);font-weight:600}
+.cal-d.sel span{background:var(--fg);color:var(--bg)}
+.cal-d.sel.today span{background:var(--accent);color:#fff}
+.cal-d.ev::after{content:"";position:absolute;bottom:0;width:5px;height:5px;border-radius:50%;background:var(--muted)}
+.cal-d.mute{color:var(--muted);opacity:.4}
+
+/* photos */
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px}
+.pgrid img{width:100%;aspect-ratio:1;object-fit:cover;display:block;cursor:pointer}
+.viewer{position:absolute;inset:0;background:var(--bg);z-index:5;display:flex;flex-direction:column;padding-top:var(--safe-top)}
+.viewer img{flex:1;min-height:0;object-fit:contain;width:100%}
+.viewer .tools{display:flex;justify-content:space-around;padding:12px 0 32px}
+.viewer .tools a,.viewer .tools button{font-size:22px;text-decoration:none;background:none;border:0;cursor:pointer;color:var(--accent)}
+
+/* camera */
+.app-camera{background:#000;color:#fff}
+.cam-view{flex:1;position:relative;overflow:hidden;background:#111;margin:40px 0 0}
+.cam-view video{width:100%;height:100%;object-fit:cover}
+.cam-view video.mirror{transform:scaleX(-1)}
+.cam-msg{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:30px;color:#bbb;font-size:15px}
+.cam-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none}
+.cam-flash.go{animation:flash .35s}
+@keyframes flash{0%{opacity:.9}100%{opacity:0}}
+.cam-mode{text-align:center;color:#ffd60a;font-size:13px;font-weight:600;letter-spacing:1px;padding:12px 0 6px}
+.cam-bar{display:flex;justify-content:space-between;align-items:center;padding:6px 34px 46px}
+.cam-thumb{width:50px;height:50px;border-radius:8px;border:0;background:#333 center/cover;cursor:pointer}
+.shutter{width:76px;height:76px;border-radius:50%;background:#fff;border:4px solid #000;box-shadow:0 0 0 4px #fff;cursor:pointer}
+.shutter:active{transform:scale(.92)}
+.cam-flip{width:50px;height:50px;border-radius:50%;border:0;background:#333;color:#fff;font-size:22px;cursor:pointer}
+
+/* piano */
+.app-piano{background:#1c1c1e;color:#fff}
+.oct{position:relative;display:flex;height:100%;flex:1}
+.pk{flex:1;background:linear-gradient(#fff,#e9e9e9);border:1px solid #999;border-radius:0 0 8px 8px;display:flex;align-items:flex-end;justify-content:center;padding-bottom:8px;color:#999;font-size:11px;cursor:pointer;touch-action:none}
+.pk.on{background:linear-gradient(#ddd,#bbb)}
+.bk{position:absolute;top:0;width:9%;height:58%;background:linear-gradient(#333,#000);border-radius:0 0 5px 5px;z-index:2;cursor:pointer;touch-action:none}
+.bk.on{background:#555}
+.piano-rows{flex:1;display:flex;flex-direction:column;gap:14px;padding:6px 8px 40px;min-height:0}
+
+/* safari */
+.sf-main{flex:1;position:relative;min-height:0;background:var(--bg)}
+.sf-frame{position:absolute;inset:0;width:100%;height:100%;border:0;background:#fff}
+.sf-start{position:absolute;inset:0}
+.favs{display:grid;grid-template-columns:repeat(4,1fr);gap:18px 6px;padding:0 16px}
+.fav{display:flex;flex-direction:column;align-items:center;gap:6px;background:none;border:0;color:var(--fg);font-size:12px;cursor:pointer}
+.fav div{width:62px;height:62px;border-radius:14px;background:var(--card);display:grid;place-items:center;font-size:30px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.sf-bar{background:var(--card);border-top:.5px solid var(--sep);padding:8px 12px 28px;flex:none}
+.sf-tools{display:flex;justify-content:space-around;margin-top:8px}
+.sf-tools button{background:none;border:0;color:var(--accent);font-size:24px;cursor:pointer;width:44px}
+.sf-tools button:disabled{opacity:.3}
+.sf-note{color:var(--muted);font-size:12px;padding:20px 20px 0;text-align:center}
+
+/* settings */
+.wall-pick{display:flex;gap:10px;padding:12px 16px;overflow-x:auto}
+.wall-pick button{flex:none;width:52px;height:92px;border-radius:10px;border:3px solid transparent;cursor:pointer;background-size:cover}
+.wall-pick button.on{border-color:var(--accent)}
+.danger{color:#ff3b30;justify-content:center;cursor:pointer}
+
+/* Full-screen on real phones */
+@media (max-width:520px){
+  .device{width:100vw;height:100vh;height:100dvh;padding:0;border-radius:0;box-shadow:none!important;background:#000}
+  .screen{border-radius:0;--safe-top:max(48px,calc(env(safe-area-inset-top) + 20px))}
+  .hw,.back-link,.tips,.island{display:none}
+  .statusbar{padding-left:28px;padding-right:22px}
+}
+</style>
+</head>
+<body>
+<a class="back-link" href="index.html">← Về Dashboard</a>
+<div class="stage">
+  <div class="device" id="device">
+    <button class="hw action" id="hwAction" title="Nút Tác vụ (đèn pin)"></button>
+    <button class="hw volup" id="hwVolUp" title="Tăng âm lượng"></button>
+    <button class="hw voldown" id="hwVolDown" title="Giảm âm lượng"></button>
+    <button class="hw power" id="hwPower" title="Nút nguồn (khoá / mở màn hình)"></button>
+
+    <div class="screen" id="screen">
+      <div class="wallpaper"></div>
+
+      <div class="home" id="home">
+        <div class="widget" id="widget"></div>
+        <div class="grid" id="grid"></div>
+        <div class="pagedots"><i></i></div>
+        <div class="dock" id="dock"></div>
+      </div>
+
+      <div id="apps"></div>
+
+      <div class="lock" id="lock">
+        <div class="lock-pad">🔒</div>
+        <div class="lock-date" id="lockDate"></div>
+        <div class="lock-time" id="lockTime"></div>
+        <div class="lock-name" id="lockName"></div>
+        <div class="lock-bottom">
+          <button class="lk-btn" id="lkTorch" title="Đèn pin">🔦</button>
+          <button class="lk-btn" id="lkCam" title="Camera">📷</button>
+        </div>
+        <div class="lock-hint">Vuốt lên hoặc chạm để mở</div>
+        <div class="pass" id="pass">
+          <h3>Nhập mật mã</h3>
+          <div class="pdots" id="pdots"><i></i><i></i><i></i><i></i></div>
+          <div class="pkeys" id="pkeys"></div>
+          <button class="pass-cancel" id="passCancel">Hủy</button>
+        </div>
+      </div>
+
+      <div class="statusbar" id="statusbar" title="Chạm để mở Trung tâm điều khiển">
+        <span id="sbTime"></span>
+        <span class="sb-right" id="sbRight"></span>
+      </div>
+      <div class="island"></div>
+
+      <div class="cc" id="cc"></div>
+      <div class="banner" id="banner"></div>
+      <div class="vol-hud" id="volHud"><i></i></div>
+
+      <div class="home-zone" id="homeZone" title="Về màn hình chính"></div>
+      <div class="home-bar"></div>
+      <div class="dim" id="dim"></div>
+      <div class="off" id="off"></div>
+    </div>
+  </div>
+</div>
+<div class="tips">Mẹo: nút bên phải = khoá máy · nút trái = âm lượng / đèn pin · chạm thanh trạng thái = Trung tâm điều khiển · Esc = về Home</div>
+
+<script>
+(() => {
+'use strict';
+
+/* ================= helpers ================= */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const pad = n => String(n).padStart(2, '0');
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('iph_' + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem('iph_' + k, JSON.stringify(v)); return true; } catch { return false; } },
+};
+const DAYS = ['Chủ Nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
+const DAYS_SHORT = ['CN','T2','T3','T4','T5','T6','T7'];
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+function fmtWhen(t) {
+  const d = new Date(t), now = new Date();
+  if (ymd(d) === ymd(now)) return `${d.getHours()}:${pad(d.getMinutes())}`;
+  const y = new Date(now); y.setDate(now.getDate() - 1);
+  if (ymd(d) === ymd(y)) return 'Hôm qua';
+  return `${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()}`;
+}
+
+const WALLS = [
+  'radial-gradient(circle at 20% 15%,#7f5af0 0%,transparent 45%),radial-gradient(circle at 85% 70%,#2cb67d 0%,transparent 45%),linear-gradient(160deg,#0f0c29,#302b63,#24243e)',
+  'linear-gradient(160deg,#1a2a6c 0%,#b21f1f 55%,#fdbb2d 100%)',
+  'linear-gradient(180deg,#00c6fb,#005bea)',
+  'linear-gradient(160deg,#ff9a9e,#fad0c4 45%,#a18cd1)',
+  'linear-gradient(170deg,#0b0b0f,#232526 60%,#414345)',
+  'linear-gradient(160deg,#11998e,#38ef7d)',
+  'radial-gradient(circle at 50% 110%,#ff7e5f,transparent 60%),linear-gradient(180deg,#0f2027,#203a43,#2c5364)',
+];
+
+const S = Object.assign({
+  name: 'iPhone của Công', wall: 0, dark: false, brightness: 1, volume: 0.6,
+  passcode: '', wifi: true, bt: true, airplane: false, wcity: 0,
+}, store.get('settings', {}));
+const saveS = () => store.set('settings', S);
+
+const device = $('#device'), screenEl = $('#screen'), lockEl = $('#lock');
+
+/* ================= audio ================= */
+let actx;
+function tone(freq, dur = 0.15, type = 'sine', vol = 0.3, when = 0) {
+  if (!S.volume) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const t = actx.currentTime + when;
+    const o = actx.createOscillator(), g = actx.createGain();
+    o.type = type; o.frequency.value = freq;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.linearRampToValueAtTime(vol * S.volume, t + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(actx.destination);
+    o.start(t); o.stop(t + dur + 0.05);
+  } catch {}
+}
+
+/* ================= status bar ================= */
+let batt = { level: 1, charging: false };
+if (navigator.getBattery) navigator.getBattery().then(b => {
+  const u = () => { batt = { level: b.level, charging: b.charging }; renderStatus(); };
+  u(); b.addEventListener('levelchange', u); b.addEventListener('chargingchange', u);
+}).catch(() => {});
+
+function renderStatus() {
+  const sig = `<svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>`;
+  const wifi = `<svg width="16" height="12" viewBox="0 0 16 12"><path d="M8 2.2c2.4 0 4.6.9 6.2 2.5l1.3-1.3A10.6 10.6 0 0 0 8 .3 10.6 10.6 0 0 0 .5 3.4l1.3 1.3A8.7 8.7 0 0 1 8 2.2zm0 3.7c1.4 0 2.7.5 3.6 1.5l1.3-1.3A7 7 0 0 0 8 4a7 7 0 0 0-4.9 2l1.3 1.4c1-1 2.2-1.5 3.6-1.5zM8 9.4c-.6 0-1.1.2-1.5.6L8 11.6 9.5 10c-.4-.4-.9-.6-1.5-.6z"/></svg>`;
+  const lv = Math.round(batt.level * 100);
+  $('#sbRight').innerHTML =
+    (S.airplane ? '<span style="font-size:14px">✈︎</span>' : sig) +
+    (S.wifi ? wifi : '') +
+    `<span class="batt ${lv <= 20 ? 'low' : ''} ${batt.charging ? 'chg' : ''}" title="${lv}%"><i style="width:${Math.max(6, lv)}%"></i></span>`;
+}
+
+/* ================= clock tick ================= */
+function tick() {
+  const d = new Date();
+  const hm = `${d.getHours()}:${pad(d.getMinutes())}`;
+  $('#sbTime').textContent = hm;
+  $('#lockTime').textContent = hm;
+  $('#lockDate').textContent = `${DAYS[d.getDay()]}, ${d.getDate()} tháng ${d.getMonth() + 1}`;
+  const ci = $('.calic');
+  if (ci) ci.innerHTML = `<small>${DAYS_SHORT[d.getDay()]}</small><b>${d.getDate()}</b>`;
+  renderWidget();
+}
+
+/* ================= settings apply ================= */
+function applySettings() {
+  screenEl.style.setProperty('--wall', WALLS[S.wall] || WALLS[0]);
+  screenEl.classList.toggle('dark', !!S.dark);
+  $('#dim').style.opacity = ((1 - S.brightness) * 0.75).toFixed(2);
+  $('#lockName').textContent = S.name;
+  renderStatus(); updateInk();
+}
+
+/* ================= app framework ================= */
+const APPS = {};
+let cur = null;           // {id, el, cleanup}
+let locked = true, screenOn = true;
+
+function updateInk() {
+  const ink = cur && !locked && !S.dark && !APPS[cur.id].darkUI;
+  screenEl.classList.toggle('ink', !!ink);
+}
+function openApp(id, from) {
+  if (locked || !screenOn || !APPS[id]) return;
+  closeCC();
+  if (cur) closeApp(true);
+  const el = document.createElement('div');
+  el.className = 'app app-' + id;
+  if (!from) from = $(`#home [data-app="${id}"]`);
+  if (from) {
+    const sr = screenEl.getBoundingClientRect(), r = from.getBoundingClientRect();
+    if (r.width) el.style.transformOrigin = `${(r.left + r.width / 2 - sr.left) / sr.width * 100}% ${(r.top + r.height / 2 - sr.top) / sr.height * 100}%`;
+  }
+  $('#apps').appendChild(el);
+  cur = { id, el, cleanup: null };
+  try { cur.cleanup = APPS[id].render(el) || null; } catch (e) { console.error(e); }
+  updateInk();
+}
+function closeApp(instant) {
+  if (!cur) return;
+  const c = cur; cur = null;
+  try { c.cleanup && c.cleanup(); } catch {}
+  if (instant) c.el.remove();
+  else { c.el.classList.add('closing'); setTimeout(() => c.el.remove(), 270); }
+  updateInk();
+}
+function goHome() {
+  if (ccOpen) return closeCC();
+  if (locked) return unlockAttempt();
+  closeApp();
+}
+
+/* ================= home screen ================= */
+const GRID = ['calendar','photos','clock','weather','notes','calc','piano','settings'];
+const DOCK = ['phone','safari','messages','camera'];
+function iconHTML(id) {
+  const a = APPS[id];
+  const glyph = id === 'calendar' ? '<div class="calic"></div>' : a.glyph;
+  return `<button class="icon" data-app="${id}"><div class="ic" style="background:${a.bg}">${glyph}</div><div class="lbl">${a.name}</div><b class="badge" hidden></b></button>`;
+}
+function renderHome() {
+  $('#grid').innerHTML = GRID.map(iconHTML).join('');
+  $('#dock').innerHTML = DOCK.map(iconHTML).join('');
+  tick(); updateBadges();
+}
+$('#home').addEventListener('click', e => {
+  const b = e.target.closest('[data-app]');
+  if (b) { tone(1600, .03, 'square', .04); openApp(b.dataset.app, b.querySelector('.ic')); }
+  else if (e.target.closest('#widget')) openApp('calendar');
+});
+function renderWidget() {
+  const d = new Date(), h = d.getHours();
+  const greet = h < 11 ? 'Chào buổi sáng' : h < 14 ? 'Chào buổi trưa' : h < 18 ? 'Chào buổi chiều' : 'Chào buổi tối';
+  const ev = (events[ymd(d)] || [])[0];
+  const who = S.name.replace(/^iPhone của\s*/i, '');
+  $('#widget').innerHTML = `<b>${greet}${who ? ', ' + esc(who) : ''} 👋</b><small>${DAYS[d.getDay()]}, ${d.getDate()}/${d.getMonth() + 1}/${d.getFullYear()} · ${ev ? '📌 ' + esc(ev) : 'Hôm nay chưa có sự kiện'}</small>`;
+}
+
+/* ================= lock / power ================= */
+function lockPhone() {
+  closeApp(true); closeCC();
+  locked = true;
+  lockEl.style.transform = '';
+  lockEl.classList.remove('hidden');
+  screenEl.classList.add('locked');
+  hidePass(); updateInk();
+}
+let pendingAfterUnlock = null;
+function unlock() {
+  locked = false;
+  lockEl.classList.add('hidden');
+  screenEl.classList.remove('locked');
+  hidePass(); updateInk();
+  tone(1200, .05, 'sine', .15);
+  if (pendingAfterUnlock) { const id = pendingAfterUnlock; pendingAfterUnlock = null; setTimeout(() => openApp(id), 250); }
+}
+function unlockAttempt() {
+  if (!S.passcode) return unlock();
+  lockEl.style.transform = '';
+  showPass();
+}
+function power() {
+  if (screenOn) {
+    lockPhone(); screenOn = false; $('#off').classList.add('on');
+    tone(300, .08, 'square', .15);
+  } else wake();
+}
+function wake() { screenOn = true; $('#off').classList.remove('on'); }
+$('#hwPower').onclick = power;
+$('#off').onclick = wake;
+
+// lock gestures
+let ly = null;
+lockEl.addEventListener('pointerdown', e => {
+  if (e.target.closest('button,.pass')) return;
+  ly = e.clientY; lockEl.style.transition = 'none';
+  try { lockEl.setPointerCapture(e.pointerId); } catch {}
+});
+lockEl.addEventListener('pointermove', e => {
+  if (ly == null) return;
+  lockEl.style.transform = `translateY(${Math.min(0, e.clientY - ly)}px)`;
+});
+const endLockDrag = e => {
+  if (ly == null) return;
+  const dy = e.clientY - ly; ly = null;
+  lockEl.style.transition = '';
+  if (e.type === 'pointerup' && (dy < -60 || Math.abs(dy) < 6)) unlockAttempt();
+  else lockEl.style.transform = '';
+};
+lockEl.addEventListener('pointerup', endLockDrag);
+lockEl.addEventListener('pointercancel', endLockDrag);
+$('#lkTorch').onclick = () => toggleTorch();
+$('#lkCam').onclick = () => { pendingAfterUnlock = 'camera'; unlockAttempt(); };
+
+// passcode
+let passBuf = '';
+const PK = [['1',''],['2','ABC'],['3','DEF'],['4','GHI'],['5','JKL'],['6','MNO'],['7','PQRS'],['8','TUV'],['9','WXYZ'],['',''],['0',''],['','']];
+$('#pkeys').innerHTML = PK.map(([d, s]) => d ? `<button class="key" data-pk="${d}"><b>${d}</b><small>${s}</small></button>` : '<span></span>').join('');
+function drawDots() { $$('#pdots i').forEach((i, k) => i.classList.toggle('f', k < passBuf.length)); }
+function showPass() { passBuf = ''; drawDots(); $('#pass').classList.add('show'); }
+function hidePass() { $('#pass').classList.remove('show'); passBuf = ''; }
+$('#pkeys').addEventListener('click', e => {
+  const k = e.target.closest('[data-pk]'); if (!k) return;
+  tone(1400, .03, 'sine', .1);
+  passBuf += k.dataset.pk; drawDots();
+  if (passBuf.length === 4) {
+    if (passBuf === S.passcode) setTimeout(unlock, 120);
+    else {
+      const d = $('#pdots'); d.classList.remove('shake'); void d.offsetWidth; d.classList.add('shake');
+      tone(200, .25, 'sawtooth', .15);
+      setTimeout(() => { passBuf = ''; drawDots(); }, 400);
+    }
+  }
+});
+$('#passCancel').onclick = hidePass;
+
+// home indicator
+$('#homeZone').addEventListener('click', goHome);
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') goHome();
+  if (!locked || !$('#pass').classList.contains('show')) return;
+  if (/^\d$/.test(e.key)) $(`[data-pk="${e.key}"]`)?.click();
+  if (e.key === 'Backspace') { passBuf = passBuf.slice(0, -1); drawDots(); }
+});
+
+/* ================= torch / volume ================= */
+let torch = false;
+function toggleTorch() {
+  torch = !torch;
+  device.classList.toggle('torch', torch);
+  $('#lkTorch').classList.toggle('on', torch);
+  tone(torch ? 900 : 600, .05, 'sine', .15);
+  if (ccOpen) renderCC();
+}
+$('#hwAction').onclick = toggleTorch;
+function setVol(v, hud = true) {
+  S.volume = Math.max(0, Math.min(1, Math.round(v * 16) / 16)); saveS();
+  const h = $('#volHud');
+  h.querySelector('i').style.height = S.volume * 100 + '%';
+  if (!hud) return;
+  h.classList.add('show'); clearTimeout(h._t); h._t = setTimeout(() => h.classList.remove('show'), 1200);
+  tone(660, .06, 'sine', .3);
+}
+$('#hwVolUp').onclick = () => setVol(S.volume + 1 / 16);
+$('#hwVolDown').onclick = () => setVol(S.volume - 1 / 16);
+
+/* ================= notifications ================= */
+let bannerT;
+function notify(icon, title, body, onTap) {
+  const b = $('#banner');
+  b.innerHTML = `<div class="bi">${icon}</div><div style="min-width:0"><b>${esc(title)}</b><p>${esc(body)}</p></div><small>bây giờ</small>`;
+  b.onclick = () => { b.classList.remove('show'); if (onTap) { if (locked) unlockAttempt(); if (!locked) onTap(); } };
+  if (!screenOn) wake();
+  b.classList.add('show');
+  clearTimeout(bannerT); bannerT = setTimeout(() => b.classList.remove('show'), 4500);
+  tone(988, .12, 'sine', .3); tone(1319, .2, 'sine', .3, .13);
+  if (navigator.vibrate) try { navigator.vibrate(120); } catch {}
+}
+
+/* ================= control center ================= */
+let ccOpen = false;
+function openCC() { if (!screenOn) return; ccOpen = true; renderCC(); $('#cc').classList.add('open'); }
+function closeCC() { if (!ccOpen) return; ccOpen = false; $('#cc').classList.remove('open'); }
+$('#statusbar').addEventListener('click', () => ccOpen ? closeCC() : openCC());
+function renderCC() {
+  const cc = $('#cc');
+  cc.innerHTML = `<div class="cc-grid">
+    <div class="cc-tile cc-conn">
+      <button data-cc="airplane" class="${S.airplane ? 'on amber' : ''}" title="Chế độ máy bay">✈️</button>
+      <button data-cc="wifi" class="${S.wifi ? 'on' : ''}" title="Wi‑Fi">📶</button>
+      <button data-cc="bt" class="${S.bt ? 'on' : ''}" title="Bluetooth">🅱️</button>
+      <button data-cc="dark" class="${S.dark ? 'on' : ''}" title="Chế độ tối">🌓</button>
+    </div>
+    <div class="vslider" data-vs="brightness" title="Độ sáng"><div class="fill"></div><span>☀️</span></div>
+    <div class="vslider" data-vs="volume" title="Âm lượng"><div class="fill"></div><span>🔊</span></div>
+    <button class="cc-tile ${torch ? 'on' : ''}" data-cc="torch" title="Đèn pin">🔦</button>
+    <button class="cc-tile" data-cc="lock" title="Khoá máy">🔒</button>
+    <button class="cc-tile" data-cc="app:clock" title="Hẹn giờ">⏱️</button>
+    <button class="cc-tile" data-cc="app:calc" title="Máy tính">🧮</button>
+    <button class="cc-tile" data-cc="app:camera" title="Camera">📷</button>
+    <button class="cc-tile" data-cc="app:notes" title="Ghi chú">📝</button>
+    <button class="cc-tile" data-cc="app:settings" title="Cài đặt">⚙️</button>
+    <button class="cc-tile" data-cc="app:piano" title="Piano">🎹</button>
+  </div><div class="cc-info">Chạm vùng trống để đóng</div>`;
+  $$('.vslider', cc).forEach(vs => {
+    const key = vs.dataset.vs, fill = vs.firstElementChild;
+    const draw = () => fill.style.height = S[key] * 100 + '%';
+    draw();
+    const set = e => {
+      const r = vs.getBoundingClientRect();
+      let v = 1 - (e.clientY - r.top) / r.height;
+      v = Math.max(key === 'brightness' ? 0.1 : 0, Math.min(1, v));
+      if (key === 'volume') { S.volume = v; } else S.brightness = v;
+      saveS(); applySettings(); draw();
+    };
+    vs.addEventListener('pointerdown', e => { e.stopPropagation(); try { vs.setPointerCapture(e.pointerId); } catch {} set(e); vs._d = true; });
+    vs.addEventListener('pointermove', e => vs._d && set(e));
+    vs.addEventListener('pointerup', () => { vs._d = false; if (key === 'volume') tone(660, .06); });
+  });
+}
+$('#cc').addEventListener('click', e => {
+  if (e.target.closest('.vslider')) return;
+  const b = e.target.closest('[data-cc]');
+  if (!b) { if (!e.target.closest('.cc-tile')) closeCC(); return; }
+  const k = b.dataset.cc;
+  if (k.startsWith('app:')) {
+    const id = k.slice(4); closeCC();
+    if (locked) { pendingAfterUnlock = id; unlockAttempt(); } else openApp(id);
+    return;
+  }
+  if (k === 'torch') return toggleTorch();
+  if (k === 'lock') { closeCC(); return power(); }
+  if (k === 'airplane') { S.airplane = !S.airplane; if (S.airplane) S.wifi = S.bt = false; }
+  else if (k === 'wifi') S.wifi = !S.wifi;
+  else if (k === 'bt') S.bt = !S.bt;
+  else if (k === 'dark') S.dark = !S.dark;
+  saveS(); applySettings(); renderCC();
+});
+
+/* =====================================================================
+   APPS
+   ===================================================================== */
+
+/* ---------- Phone ---------- */
+let contacts = store.get('contacts', [
+  { n: 'Mẹ', p: '0912345678' }, { n: 'Bố', p: '0987654321' },
+  { n: 'Hỗ trợ My Panel', p: '0365355610' }, { n: 'Lan Anh', p: '0909123456' }, { n: 'Minh Tuấn', p: '0933222111' },
+]);
+let recents = store.get('recents', []);
+const findName = p => (contacts.find(c => c.p === p) || {}).n;
+const DTMF = { '1':[697,1209],'2':[697,1336],'3':[697,1477],'4':[770,1209],'5':[770,1336],'6':[770,1477],'7':[852,1209],'8':[852,1336],'9':[852,1477],'*':[941,1209],'0':[941,1336],'#':[941,1477] };
+const dtmf = k => { const f = DTMF[k]; if (f) { tone(f[0], .15, 'sine', .2); tone(f[1], .15, 'sine', .2); } };
+
+function startCall(p) {
+  const name = findName(p) || p;
+  const ov = document.createElement('div');
+  ov.className = 'call';
+  ov.innerHTML = `<div class="call-av">${esc((findName(p) || '#')[0].toUpperCase())}</div><h2>${esc(name)}</h2>
+    <p class="call-st">Đang gọi…</p>
+    <div class="call-btns">${[['🔇','tắt tiếng'],['⌨️','bàn phím'],['🔊','loa'],['➕','thêm'],['📹','FaceTime'],['👤','danh bạ']].map(([i, l]) => `<button class="cb"><span>${i}</span>${l}</button>`).join('')}</div>
+    <button class="call-end" title="Kết thúc"><span>📞</span></button>`;
+  screenEl.appendChild(ov);
+  const st = $('.call-st', ov);
+  let start = null, tmr;
+  const ringOnce = () => tone(425, 1, 'sine', .12);
+  ringOnce(); const ring = setInterval(ringOnce, 3000);
+  const conn = setTimeout(() => {
+    clearInterval(ring); start = Date.now(); st.textContent = '00:00';
+    tmr = setInterval(() => { const s = Math.floor((Date.now() - start) / 1000); st.textContent = `${pad(Math.floor(s / 60))}:${pad(s % 60)}`; }, 500);
+  }, 3500 + Math.random() * 3000);
+  $$('.cb', ov).forEach(b => b.onclick = () => b.classList.toggle('on'));
+  $('.call-end', ov).onclick = () => {
+    clearInterval(ring); clearInterval(tmr); clearTimeout(conn);
+    const dur = start ? Math.floor((Date.now() - start) / 1000) : 0;
+    recents.unshift({ p, t: Date.now(), dur }); recents = recents.slice(0, 60); store.set('recents', recents);
+    st.textContent = 'Cuộc gọi kết thúc'; tone(480, .25, 'sine', .2);
+    document.dispatchEvent(new Event('iph:recents'));
+    setTimeout(() => ov.remove(), 700);
+  };
+}
+function messageContact(c) {
+  let t = threads.find(t => t.id === c.p) || threads.find(t => t.name === c.n);
+  if (!t) { t = { id: c.p, name: c.n, msgs: [], unread: 0 }; threads.unshift(t); saveThreads(); }
+  pendingThread = t.id; openApp('messages');
+}
+
+APPS.phone = {
+  name: 'Điện thoại', bg: 'linear-gradient(180deg,#5af777,#0ec43a)', glyph: '📞',
+  render(el) {
+    let tab = 'keypad', num = '';
+    el.innerHTML = `<div class="scroll ph-view"></div><nav class="tabbar">${[['recents','🕘','Gần đây'],['contacts','👤','Danh bạ'],['keypad','🔢','Bàn phím']].map(([k, i, l]) => `<button data-tab="${k}"><span>${i}</span>${l}</button>`).join('')}</nav>`;
+    const view = $('.ph-view', el);
+    const updNum = () => {
+      $('.dial-num', view).textContent = num;
+      $('.dial-name', view).textContent = findName(num) || '';
+      $('[data-del]', view).style.visibility = num ? '' : 'hidden';
+      const rc = $('.real-call', view);
+      rc.style.visibility = num ? '' : 'hidden'; rc.href = 'tel:' + num;
+    };
+    const drawPad = () => {
+      view.innerHTML = `<div class="dial"><div class="dial-num"></div><div class="dial-name"></div>
+        <div class="keys">${[['1',''],['2','ABC'],['3','DEF'],['4','GHI'],['5','JKL'],['6','MNO'],['7','PQRS'],['8','TUV'],['9','WXYZ'],['*',''],['0','+'],['#','']].map(([d, s]) => `<button class="key" data-k="${d}"><b>${d}</b><small>${s}</small></button>`).join('')}
+        <span></span><button class="key kcall" data-call title="Gọi">📞</button><button class="key del" data-del title="Xoá">⌫</button></div>
+        <a class="real-call" href="#">Gọi thật bằng điện thoại của bạn ↗</a></div>`;
+      updNum();
+    };
+    const drawRecents = () => {
+      view.innerHTML = `<div class="navbar"><span></span><button class="link" data-clear ${recents.length ? '' : 'disabled'}>Xoá</button></div><div class="big-title">Gần đây</div>` +
+        (recents.length ? `<div class="group">${recents.map(r => `<div class="row tap" data-callp="${esc(r.p)}"><div class="grow"><div class="ell">${esc(findName(r.p) || r.p)}</div><div class="sub">📞 cuộc gọi đi · ${r.dur ? `${Math.floor(r.dur / 60)}p ${r.dur % 60}s` : 'không trả lời'}</div></div><span class="sub">${fmtWhen(r.t)}</span></div>`).join('')}</div>` : '<p class="empty">Chưa có cuộc gọi nào</p>');
+    };
+    const drawContacts = () => {
+      const sorted = contacts.map((c, i) => ({ ...c, i })).sort((a, b) => a.n.localeCompare(b.n, 'vi'));
+      view.innerHTML = `<div class="big-title" style="padding-top:12px">Danh bạ</div>
+        <form class="group" data-addform style="padding:12px;display:grid;gap:8px">
+          <input class="input" name="n" placeholder="Tên" required maxlength="40">
+          <input class="input" name="p" placeholder="Số điện thoại" inputmode="tel" required maxlength="15">
+          <button class="btn-pri">＋ Thêm liên hệ</button></form>
+        <div class="group">${sorted.map(c => `<div class="row"><div class="av">${esc(c.n[0].toUpperCase())}</div><div class="grow"><div class="ell">${esc(c.n)}</div><div class="sub">${esc(c.p)}</div></div>
+          <button class="mini" data-callp="${esc(c.p)}" title="Gọi">📞</button><button class="mini" data-msg="${c.i}" title="Nhắn tin">💬</button><button class="mini" data-delc="${c.i}" title="Xoá">✕</button></div>`).join('') || '<p class="empty">Trống</p>'}</div>`;
+    };
+    const draw = () => {
+      $$('.tabbar button', el).forEach(b => b.classList.toggle('on', b.dataset.tab === tab));
+      ({ keypad: drawPad, recents: drawRecents, contacts: drawContacts })[tab]();
+    };
+    view.addEventListener('click', e => {
+      const k = e.target.closest('[data-k]');
+      if (k) { if (num.length < 15) { num += k.dataset.k; dtmf(k.dataset.k); } return updNum(); }
+      if (e.target.closest('[data-del]')) { num = num.slice(0, -1); return updNum(); }
+      if (e.target.closest('[data-call]')) { if (!num) { num = recents[0]?.p || ''; return updNum(); } return startCall(num); }
+      if (e.target.closest('.real-call') && !num) { e.preventDefault(); return; }
+      const c = e.target.closest('[data-callp]'); if (c) return startCall(c.dataset.callp);
+      const m = e.target.closest('[data-msg]'); if (m) return messageContact(contacts[+m.dataset.msg]);
+      const dc = e.target.closest('[data-delc]');
+      if (dc) { contacts.splice(+dc.dataset.delc, 1); store.set('contacts', contacts); return drawContacts(); }
+      if (e.target.closest('[data-clear]')) { recents = []; store.set('recents', recents); drawRecents(); }
+    });
+    view.addEventListener('submit', e => {
+      e.preventDefault();
+      const f = e.target, n = f.n.value.trim(), p = f.p.value.replace(/[^\d+*#]/g, '');
+      if (!n || !p) return;
+      contacts.push({ n, p }); store.set('contacts', contacts); drawContacts();
+    });
+    $('.tabbar', el).addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) { tab = b.dataset.tab; draw(); } });
+    const onRec = () => tab === 'recents' && drawRecents();
+    document.addEventListener('iph:recents', onRec);
+    const onKey = e => {
+      if (tab !== 'keypad' || e.target.tagName === 'INPUT') return;
+      if (/^[\d*#]$/.test(e.key)) $(`[data-k="${e.key}"]`, view)?.click();
+      else if (e.key === 'Backspace') $('[data-del]', view)?.click();
+      else if (e.key === 'Enter') $('[data-call]', view)?.click();
+    };
+    document.addEventListener('keydown', onKey);
+    draw();
+    return () => { document.removeEventListener('iph:recents', onRec); document.removeEventListener('keydown', onKey); };
+  },
+};
+
+/* ---------- Messages ---------- */
+let threads = store.get('threads', [
+  { id: 'lan', name: 'Lan Anh', msgs: [{ me: false, text: 'Chào bạn! Hôm nay thế nào? 😊', t: Date.now() - 3600e3 }], unread: 1 },
+  { id: 'tuan', name: 'Minh Tuấn', msgs: [{ me: true, text: 'Mai đi đá bóng nhé', t: Date.now() - 90000e3 }, { me: false, text: 'Ok, 5h chiều nha ⚽', t: Date.now() - 89000e3 }], unread: 0 },
+]);
+const REPLIES = ['Ok bạn 👍','Haha 😂','Thật á? 😮','Để mình xem đã nhé','Tuyệt vời! 🎉','Mình đang bận chút, lát nói nhé','Đồng ý 💯','Ừ, hẹn gặp lại!','Hay đấy 🤩','Kể thêm đi?','Chuẩn luôn','Cảm ơn nha ❤️'];
+const saveThreads = () => store.set('threads', threads);
+let pendingThread = null, msgViewing = null, msgRedraw = null;
+function updateBadges() {
+  const n = threads.reduce((a, t) => a + (t.unread || 0), 0);
+  $$('[data-app="messages"] .badge').forEach(b => { b.hidden = !n; b.textContent = n; });
+}
+function scheduleReply(t) {
+  setTimeout(() => {
+    t.typing = true; if (msgViewing === t.id) msgRedraw?.();
+    setTimeout(() => {
+      t.typing = false;
+      const text = REPLIES[Math.floor(Math.random() * REPLIES.length)];
+      t.msgs.push({ me: false, text, t: Date.now() });
+      if (msgViewing === t.id) { msgRedraw?.(); tone(1200, .08, 'sine', .2); }
+      else { t.unread = (t.unread || 0) + 1; notify('💬', t.name, text, () => { pendingThread = t.id; openApp('messages'); }); }
+      saveThreads(); updateBadges();
+    }, 1200 + Math.random() * 1500);
+  }, 700);
+}
+APPS.messages = {
+  name: 'Tin nhắn', bg: 'linear-gradient(180deg,#5af777,#0ec43a)', glyph: '💬',
+  render(el) {
+    let view = pendingThread; pendingThread = null;
+    const draw = () => { msgViewing = view && view !== '__new' ? view : null; view === '__new' ? drawNew() : view ? drawThread() : drawList(); };
+    const drawList = () => {
+      el.innerHTML = `<div class="navbar"><span></span><button class="link" data-new title="Tin nhắn mới">✏️</button></div><div class="big-title">Tin nhắn</div><div class="scroll">` +
+        (threads.map(t => { const last = t.msgs[t.msgs.length - 1];
+          return `<div class="th-row" data-open="${esc(t.id)}"><i class="dot ${t.unread ? '' : 'off'}"></i><div class="av">${esc(t.name[0].toUpperCase())}</div><div class="grow"><div class="th-top"><b class="ell">${esc(t.name)}</b><small>${last ? fmtWhen(last.t) : ''}</small></div><div class="th-prev">${esc(last ? last.text : 'Chưa có tin nhắn')}</div></div></div>`; }).join('') || '<p class="empty">Không có tin nhắn</p>') + '</div>';
+    };
+    const drawNew = () => {
+      el.innerHTML = `<div class="navbar"><button class="link" data-back>Hủy</button><span class="t">Tin nhắn mới</span><span style="width:50px"></span></div>
+        <form class="group" data-newform style="padding:12px;display:grid;gap:8px;margin-top:10px"><input class="input" name="to" placeholder="Đến: tên người nhận" required maxlength="40" autofocus><button class="btn-pri">Tạo cuộc trò chuyện</button></form>`;
+    };
+    const drawThread = () => {
+      const t = threads.find(x => x.id === view);
+      if (!t) { view = null; return draw(); }
+      t.unread = 0; saveThreads(); updateBadges();
+      el.innerHTML = `<div class="navbar"><button class="link" data-back>‹ Tin nhắn</button><div class="th-head"><div class="av">${esc(t.name[0].toUpperCase())}</div>${esc(t.name)}</div><button class="link" data-callt title="Gọi">📞</button></div>
+        <div class="scroll bubbles"></div>
+        <form class="composer"><input class="input" placeholder="iMessage" maxlength="500"><button class="send" title="Gửi">↑</button></form>`;
+      const box = $('.bubbles', el);
+      msgRedraw = () => {
+        let html = '', lastT = 0;
+        t.msgs.forEach(m => {
+          if (m.t - lastT > 3600e3) html += `<div class="stamp">${fmtWhen(m.t)}</div>`;
+          lastT = m.t;
+          html += `<div class="bub ${m.me ? 'me' : 'them'}">${esc(m.text)}</div>`;
+        });
+        if (t.typing) html += '<div class="bub them typing">•••</div>';
+        box.innerHTML = html || '<p class="empty">Gửi tin nhắn đầu tiên 👋</p>';
+        box.scrollTop = box.scrollHeight;
+      };
+      msgRedraw();
+      $('.composer', el).onsubmit = e => {
+        e.preventDefault();
+        const inp = $('.composer input', el), text = inp.value.trim();
+        if (!text) return;
+        t.msgs.push({ me: true, text, t: Date.now() }); inp.value = '';
+        saveThreads(); msgRedraw(); tone(700, .08, 'sine', .2); scheduleReply(t);
+      };
+      $('[data-callt]', el).onclick = () => { const c = contacts.find(c => c.n === t.name || c.p === t.id); startCall(c ? c.p : t.id); };
+    };
+    el.addEventListener('click', e => {
+      const o = e.target.closest('[data-open]'); if (o) { view = o.dataset.open; return draw(); }
+      if (e.target.closest('[data-back]')) { view = null; msgRedraw = null; return draw(); }
+      if (e.target.closest('[data-new]')) { view = '__new'; return draw(); }
+    });
+    el.addEventListener('submit', e => {
+      if (!e.target.matches('[data-newform]')) return;
+      e.preventDefault();
+      const name = e.target.to.value.trim(); if (!name) return;
+      let t = threads.find(t => t.name.toLowerCase() === name.toLowerCase());
+      if (!t) { const c = contacts.find(c => c.n.toLowerCase() === name.toLowerCase()); t = { id: c ? c.p : 'u' + Date.now(), name, msgs: [], unread: 0 }; threads.unshift(t); saveThreads(); }
+      view = t.id; draw();
+    });
+    draw();
+    return () => { msgViewing = null; msgRedraw = null; };
+  },
+};
+
+/* ---------- Calculator ---------- */
+APPS.calc = {
+  name: 'Máy tính', bg: 'linear-gradient(180deg,#3a3a3c,#1c1c1e)', glyph: '🧮', darkUI: true,
+  render(el) {
+    let curV = '0', acc = null, op = null, fresh = false;
+    el.innerHTML = `<div class="calc-disp"></div><div class="calc-keys">${[
+      ['AC','fn','clear'],['±','fn','sign'],['%','fn','pct'],['÷','op','/'],
+      ['7','','7'],['8','','8'],['9','','9'],['×','op','*'],
+      ['4','','4'],['5','','5'],['6','','6'],['−','op','-'],
+      ['1','','1'],['2','','2'],['3','','3'],['+','op','+'],
+      ['0','zero','0'],[',','','.'],['=','op','='],
+    ].map(([l, c, k]) => `<button class="ck ${c}" data-c="${k}">${l}</button>`).join('')}</div>`;
+    const disp = $('.calc-disp', el);
+    const fmt = n => {
+      if (!isFinite(n)) return 'Lỗi';
+      let s = String(parseFloat(n.toPrecision(9)));
+      if (s.replace(/[-.]/g, '').length > 9 || s.includes('e')) s = n.toExponential(3).replace('e+', 'e');
+      return s;
+    };
+    const pretty = s => {
+      if (s === 'Lỗi' || s.includes('e')) return s.replace('.', ',');
+      const neg = s.startsWith('-'), [i, d] = s.replace('-', '').split('.');
+      return (neg ? '-' : '') + i.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + (d !== undefined ? ',' + d : '');
+    };
+    const render = () => {
+      const t = pretty(curV);
+      disp.textContent = t;
+      disp.style.fontSize = (t.length > 9 ? Math.max(40, 88 - (t.length - 9) * 9) : 88) + 'px';
+      $('[data-c="clear"]', el).textContent = (curV !== '0' && !fresh) ? 'C' : 'AC';
+      $$('.ck.op', el).forEach(b => b.classList.toggle('sel', fresh && b.dataset.c === op));
+    };
+    const compute = () => {
+      const b = parseFloat(curV), a = acc;
+      const r = op === '+' ? a + b : op === '-' ? a - b : op === '*' ? a * b : op === '/' ? (b === 0 ? NaN : a / b) : b;
+      curV = fmt(r); acc = isFinite(r) ? r : null;
+    };
+    const press = k => {
+      if (curV === 'Lỗi' && k !== 'clear') { curV = '0'; acc = null; op = null; }
+      if (/^\d$/.test(k)) {
+        if (fresh) { curV = '0'; fresh = false; }
+        if (curV.replace(/[-.]/g, '').length >= 9) return render();
+        curV = curV === '0' ? k : curV === '-0' ? '-' + k : curV + k;
+      } else if (k === '.') {
+        if (fresh) { curV = '0'; fresh = false; }
+        if (!curV.includes('.')) curV += '.';
+      } else if ('+-*/'.includes(k)) {
+        if (op && !fresh) compute(); else if (!op) acc = parseFloat(curV);
+        op = k; fresh = true;
+      } else if (k === '=') {
+        if (op) { compute(); op = null; fresh = true; }
+      } else if (k === 'clear') {
+        if (curV !== '0' && !fresh) curV = '0'; else { curV = '0'; acc = null; op = null; fresh = false; }
+      } else if (k === 'sign') {
+        curV = curV.startsWith('-') ? curV.slice(1) : '-' + curV; fresh = false;
+      } else if (k === 'pct') {
+        curV = fmt(parseFloat(curV) / 100);
+      }
+      render();
+    };
+    $('.calc-keys', el).addEventListener('click', e => { const b = e.target.closest('[data-c]'); if (b) { tone(1500, .02, 'square', .04); press(b.dataset.c); } });
+    const onKey = e => {
+      const map = { Enter: '=', '=': '=', Escape: null, Backspace: 'back', Delete: 'clear', ',': '.', x: '*', X: '*' };
+      let k = e.key in map ? map[e.key] : e.key;
+      if (k === 'back') { if (!fresh && curV !== 'Lỗi') { curV = curV.length > 1 && curV !== '-0' ? curV.slice(0, -1) : '0'; if (curV === '-') curV = '0'; render(); } return; }
+      if (k && /^[\d.+\-*/=%]$/.test(k)) { e.preventDefault(); press(k === '%' ? 'pct' : k); }
+      else if (k === 'clear') press('clear');
+    };
+    document.addEventListener('keydown', onKey);
+    render();
+    return () => document.removeEventListener('keydown', onKey);
+  },
+};
+
+/* ---------- Notes ---------- */
+let notes = store.get('notes', [{ id: 1, text: 'Chào mừng đến với iPhone ảo! 📱\nGhi chú của bạn được lưu ngay trong trình duyệt, tắt trang mở lại vẫn còn.', t: Date.now() }]);
+const saveNotes = () => store.set('notes', notes);
+APPS.notes = {
+  name: 'Ghi chú', bg: 'linear-gradient(180deg,#fff 0 28%,#ffd60a 28% 30%,#fff 30%)', glyph: '📝',
+  render(el) {
+    let editing = null, q = '';
+    const drawList = () => {
+      const list = notes.filter(n => n.text.toLowerCase().includes(q.toLowerCase())).sort((a, b) => b.t - a.t);
+      el.innerHTML = `<div class="navbar"></div><div class="big-title">Ghi chú</div>
+        <div style="padding:0 16px 12px"><input class="input" data-q placeholder="🔍 Tìm kiếm" value="${esc(q)}"></div>
+        <div class="scroll">${list.length ? `<div class="group">${list.map(n => {
+          const [title, ...rest] = n.text.trim().split('\n');
+          return `<div class="row tap" data-note="${n.id}"><div class="grow"><b class="ell" style="display:block">${esc(title || 'Ghi chú mới')}</b><div class="sub ell">${fmtWhen(n.t)}  ${esc(rest.join(' ').trim() || 'Không có văn bản bổ sung')}</div></div></div>`; }).join('')}</div>` : '<p class="empty">Không có ghi chú</p>'}</div>
+        <div class="notes-foot"><span></span><span>${notes.length} ghi chú</span><button class="link" data-newnote title="Ghi chú mới" style="font-size:22px">✏️</button></div>`;
+      const qi = $('[data-q]', el);
+      qi.oninput = () => { q = qi.value; const pos = qi.selectionStart; drawList(); const n = $('[data-q]', el); n.focus(); n.setSelectionRange(pos, pos); };
+    };
+    const drawEdit = () => {
+      const n = notes.find(n => n.id === editing);
+      el.innerHTML = `<div class="navbar"><button class="link" data-back>‹ Ghi chú</button><span><button class="link" data-delnote title="Xoá">🗑</button><button class="link" data-back style="font-weight:600">Xong</button></span></div>
+        <textarea class="note-edit" placeholder="Bắt đầu viết…"></textarea>`;
+      const ta = $('textarea', el); ta.value = n.text;
+      ta.oninput = () => { n.text = ta.value; n.t = Date.now(); saveNotes(); };
+      if (!n.text) ta.focus();
+    };
+    const leaveEdit = () => {
+      const n = notes.find(n => n.id === editing);
+      if (n && !n.text.trim()) { notes = notes.filter(x => x !== n); saveNotes(); }
+      editing = null; drawList();
+    };
+    el.addEventListener('click', e => {
+      const r = e.target.closest('[data-note]'); if (r) { editing = +r.dataset.note; return drawEdit(); }
+      if (e.target.closest('[data-newnote]')) { const n = { id: Date.now(), text: '', t: Date.now() }; notes.push(n); editing = n.id; return drawEdit(); }
+      if (e.target.closest('[data-back]')) return leaveEdit();
+      if (e.target.closest('[data-delnote]')) { notes = notes.filter(n => n.id !== editing); saveNotes(); editing = null; return drawList(); }
+    });
+    drawList();
+    return () => { if (editing) { const n = notes.find(n => n.id === editing); if (n && !n.text.trim()) { notes = notes.filter(x => x !== n); saveNotes(); } } };
+  },
+};
+
+/* ---------- Clock (world / stopwatch / timer) ---------- */
+const sw = { running: false, start: 0, acc: 0, laps: [] };
+const swNow = () => sw.acc + (sw.running ? Date.now() - sw.start : 0);
+const tm = { running: false, end: 0, left: 0, total: 0 };
+const tmLeft = () => tm.running ? Math.max(0, tm.end - Date.now()) : tm.left;
+setInterval(() => {
+  if (tm.running && Date.now() >= tm.end) {
+    tm.running = false; tm.left = 0; tm.total = 0;
+    notify('⏱️', 'Hẹn giờ', 'Đã hết giờ!', () => openApp('clock'));
+    let n = 0; const iv = setInterval(() => { tone(880, .15, 'square', .3); tone(880, .15, 'square', .3, .25); if (++n >= 6) clearInterval(iv); }, 800);
+    document.dispatchEvent(new Event('iph:timer'));
+  }
+}, 250);
+const fmtSW = ms => `${pad(Math.floor(ms / 60000))}:${pad(Math.floor(ms / 1000) % 60)},${pad(Math.floor(ms / 10) % 100)}`;
+const fmtHMS = ms => { const s = Math.ceil(ms / 1000), h = Math.floor(s / 3600); return (h ? h + ':' : '') + pad(Math.floor(s / 60) % 60) + ':' + pad(s % 60); };
+let clockTab = 'world';
+APPS.clock = {
+  name: 'Đồng hồ', bg: '#000', glyph: '⏰', darkUI: true,
+  render(el) {
+    const CITIES = [['Hà Nội','Asia/Ho_Chi_Minh'],['Tokyo','Asia/Tokyo'],['Seoul','Asia/Seoul'],['Sydney','Australia/Sydney'],['Paris','Europe/Paris'],['London','Europe/London'],['New York','America/New_York'],['Los Angeles','America/Los_Angeles']];
+    el.innerHTML = `<div class="scroll ck-view"></div><nav class="tabbar">${[['world','🌐','Giờ quốc tế'],['sw','⏱️','Bấm giờ'],['timer','⏲️','Hẹn giờ']].map(([k, i, l]) => `<button data-tab="${k}"><span>${i}</span>${l}</button>`).join('')}</nav>`;
+    const view = $('.ck-view', el);
+    let raf;
+    const drawWorld = () => {
+      view.innerHTML = `<div class="big-title" style="padding-top:12px">Giờ quốc tế</div><div class="group" style="background:none">${CITIES.map(([n, z]) => `<div class="row" style="padding:12px 4px"><div class="grow"><div class="sub" data-zd="${z}"></div><div style="font-size:22px">${n}</div></div><div data-zt="${z}" style="font-size:44px;font-weight:200;font-variant-numeric:tabular-nums"></div></div>`).join('')}</div>`;
+    };
+    const updWorld = () => {
+      const d = new Date();
+      $$('[data-zt]', view).forEach(e => e.textContent = d.toLocaleTimeString('vi-VN', { timeZone: e.dataset.zt, hour: '2-digit', minute: '2-digit' }));
+      $$('[data-zd]', view).forEach(e => e.textContent = d.toLocaleDateString('vi-VN', { timeZone: e.dataset.zd, weekday: 'long', day: 'numeric', month: 'numeric' }));
+    };
+    const drawSW = () => {
+      view.innerHTML = `<div class="big-time" data-swt>${fmtSW(swNow())}</div>
+        <div class="circ-btns"><button class="cbtn" data-sw="lap" ${!sw.running && !sw.acc ? 'disabled' : ''}>${sw.running || !sw.acc ? 'Vòng' : 'Đặt lại'}</button>
+        <button class="cbtn ${sw.running ? 'stop' : 'go'}" data-sw="toggle">${sw.running ? 'Dừng' : 'Bắt đầu'}</button></div>
+        <div class="group laps" style="background:none">${sw.laps.map((l, i) => `<div class="row"><span class="grow">Vòng ${sw.laps.length - i}</span><span>${fmtSW(l)}</span></div>`).join('')}</div>`;
+    };
+    const drawTimer = () => {
+      if (!tm.running && !tm.left) {
+        view.innerHTML = `<div class="pick"><input type="number" min="0" max="23" value="0" data-h> giờ <input type="number" min="0" max="59" value="5" data-m> phút <input type="number" min="0" max="59" value="0" data-s> giây</div>
+          <div class="circ-btns"><button class="cbtn" disabled>Hủy</button><button class="cbtn go" data-tm="start">Bắt đầu</button></div>
+          <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;padding:0 16px">${[1,3,5,10,15,30].map(m => `<button class="chip" data-quick="${m}" style="background:#1c1c1e;color:#fff">${m} phút</button>`).join('')}</div>`;
+      } else {
+        view.innerHTML = `<svg class="ring" width="270" height="270" viewBox="0 0 270 270"><circle cx="135" cy="135" r="125" fill="none" stroke="#333" stroke-width="8"/><circle data-arc cx="135" cy="135" r="125" fill="none" stroke="#ff9f0a" stroke-width="8" stroke-linecap="round" transform="rotate(-90 135 135)" stroke-dasharray="${2 * Math.PI * 125}"/><text data-tmt x="135" y="150" text-anchor="middle" fill="#fff" font-size="52" font-weight="200"></text></svg>
+          <div class="circ-btns"><button class="cbtn" data-tm="cancel">Hủy</button><button class="cbtn ${tm.running ? 'pause' : 'go'}" data-tm="toggle">${tm.running ? 'Tạm dừng' : 'Tiếp tục'}</button></div>`;
+      }
+    };
+    const loop = () => {
+      if (clockTab === 'world') updWorld();
+      else if (clockTab === 'sw') { const t = $('[data-swt]', view); if (t) t.textContent = fmtSW(swNow()); }
+      else if (clockTab === 'timer' && (tm.running || tm.left)) {
+        const left = tmLeft(), t = $('[data-tmt]', view), a = $('[data-arc]', view);
+        if (t) t.textContent = fmtHMS(left);
+        if (a) a.setAttribute('stroke-dashoffset', 2 * Math.PI * 125 * (1 - left / tm.total));
+      }
+      raf = requestAnimationFrame(loop);
+    };
+    const draw = () => {
+      $$('.tabbar button', el).forEach(b => b.classList.toggle('on', b.dataset.tab === clockTab));
+      ({ world: drawWorld, sw: drawSW, timer: drawTimer })[clockTab]();
+    };
+    view.addEventListener('click', e => {
+      const s = e.target.closest('[data-sw]');
+      if (s) {
+        if (s.dataset.sw === 'toggle') { if (sw.running) { sw.acc += Date.now() - sw.start; sw.running = false; } else { sw.start = Date.now(); sw.running = true; } }
+        else if (sw.running) sw.laps.unshift(swNow() - sw.laps.reduce((a, b) => a + b, 0));
+        else { sw.acc = 0; sw.laps = []; }
+        return drawSW();
+      }
+      const q = e.target.closest('[data-quick]');
+      if (q) { tm.total = +q.dataset.quick * 60000; tm.end = Date.now() + tm.total; tm.running = true; return drawTimer(); }
+      const t = e.target.closest('[data-tm]');
+      if (t) {
+        const a = t.dataset.tm;
+        if (a === 'start') {
+          const ms = ((+$('[data-h]', view).value || 0) * 3600 + (+$('[data-m]', view).value || 0) * 60 + (+$('[data-s]', view).value || 0)) * 1000;
+          if (ms <= 0) return;
+          tm.total = ms; tm.end = Date.now() + ms; tm.running = true;
+        } else if (a === 'cancel') { tm.running = false; tm.left = 0; tm.total = 0; }
+        else if (tm.running) { tm.left = tmLeft(); tm.running = false; }
+        else { tm.end = Date.now() + tm.left; tm.left = 0; tm.running = true; }
+        drawTimer();
+      }
+    });
+    $('.tabbar', el).addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b) { clockTab = b.dataset.tab; draw(); } });
+    const onT = () => clockTab === 'timer' && drawTimer();
+    document.addEventListener('iph:timer', onT);
+    draw(); loop();
+    return () => { cancelAnimationFrame(raf); document.removeEventListener('iph:timer', onT); };
+  },
+};
+
+/* ---------- Weather (Open-Meteo, không cần API key) ---------- */
+const W_CITIES = [
+  { n: 'Hà Nội', la: 21.0285, lo: 105.8542 }, { n: 'TP. Hồ Chí Minh', la: 10.8231, lo: 106.6297 },
+  { n: 'Đà Nẵng', la: 16.0544, lo: 108.2022 }, { n: 'Hải Phòng', la: 20.8449, lo: 106.6881 },
+  { n: 'Huế', la: 16.4637, lo: 107.5909 }, { n: 'Đà Lạt', la: 11.9404, lo: 108.4583 },
+];
+const wmo = c => c === 0 ? ['☀️','Trời quang'] : c === 1 ? ['🌤️','Ít mây'] : c === 2 ? ['⛅','Có mây'] : c === 3 ? ['☁️','Nhiều mây']
+  : c <= 48 ? ['🌫️','Sương mù'] : c <= 57 ? ['🌦️','Mưa phùn'] : c <= 67 ? ['🌧️','Mưa'] : c <= 77 ? ['🌨️','Tuyết']
+  : c <= 82 ? ['🌦️','Mưa rào'] : ['⛈️','Dông'];
+APPS.weather = {
+  name: 'Thời tiết', bg: 'linear-gradient(180deg,#3d8ff0,#9fd0fb)', glyph: '⛅', darkUI: true,
+  render(el) {
+    let alive = true, myLoc = null;
+    const load = async () => {
+      const c = S.wcity === -1 && myLoc ? myLoc : W_CITIES[Math.max(0, S.wcity)];
+      el.innerHTML = `<div class="chips" style="padding-top:8px">${W_CITIES.map((x, i) => `<button class="chip ${S.wcity === i ? 'on' : ''}" data-city="${i}">${x.n}</button>`).join('')}<button class="chip ${S.wcity === -1 ? 'on' : ''}" data-city="-1">📍 Vị trí của tôi</button></div><div class="scroll w-body"><p class="empty" style="color:#fff">Đang tải thời tiết ${esc(c.n)}…</p></div>`;
+      try {
+        const u = `https://api.open-meteo.com/v1/forecast?latitude=${c.la}&longitude=${c.lo}&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,uv_index_max,sunrise,sunset&timezone=auto&forecast_days=7`;
+        const d = await (await fetch(u)).json();
+        if (!alive) return;
+        const cu = d.current, [ic, txt] = wmo(cu.weather_code);
+        el.classList.toggle('night', !cu.is_day);
+        const hi = Math.max(0, d.hourly.time.findIndex(t => t >= cu.time.slice(0, 13)));
+        const hrs = d.hourly.time.slice(hi, hi + 24).map((t, i) => `<div>${i ? t.slice(11, 13) + 'h' : 'Bây giờ'}<b>${wmo(d.hourly.weather_code[hi + i])[0]}</b>${Math.round(d.hourly.temperature_2m[hi + i])}°</div>`).join('');
+        const days = d.daily.time.map((t, i) => { const dd = new Date(t + 'T00:00'); return `<div class="wday"><span style="width:80px">${i ? DAYS_SHORT[dd.getDay()] : 'Hôm nay'}</span><span style="width:40px">${wmo(d.daily.weather_code[i])[0]}</span><span class="grow" style="opacity:.7;text-align:right">${Math.round(d.daily.temperature_2m_min[i])}°</span><span style="width:60px;text-align:right">${Math.round(d.daily.temperature_2m_max[i])}°</span></div>`; }).join('');
+        $('.w-body', el).innerHTML = `<div class="w-now"><h2>${esc(c.n)}</h2><div class="temp">${Math.round(cu.temperature_2m)}°</div><div style="font-size:20px">${ic} ${txt}</div><div style="opacity:.85">C:${Math.round(d.daily.temperature_2m_max[0])}° T:${Math.round(d.daily.temperature_2m_min[0])}°</div></div>
+          <div class="w-card"><h4>Dự báo theo giờ</h4><div class="hours">${hrs}</div></div>
+          <div class="w-card"><h4>Dự báo 7 ngày</h4>${days}</div>
+          <div class="w-card" style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div><h4>Cảm giác như</h4><b style="font-size:26px">${Math.round(cu.apparent_temperature)}°</b></div>
+            <div><h4>Độ ẩm</h4><b style="font-size:26px">${cu.relative_humidity_2m}%</b></div>
+            <div><h4>Gió</h4><b style="font-size:26px">${Math.round(cu.wind_speed_10m)}</b> km/h</div>
+            <div><h4>Chỉ số UV</h4><b style="font-size:26px">${Math.round(d.daily.uv_index_max[0])}</b></div>
+            <div><h4>Mặt trời mọc</h4><b style="font-size:22px">${d.daily.sunrise[0].slice(11)}</b></div>
+            <div><h4>Mặt trời lặn</h4><b style="font-size:22px">${d.daily.sunset[0].slice(11)}</b></div>
+          </div><p style="text-align:center;font-size:11px;opacity:.6">Dữ liệu: Open-Meteo</p>`;
+      } catch {
+        if (alive) $('.w-body', el).innerHTML = '<p class="empty" style="color:#fff">⚠️ Không tải được dữ liệu thời tiết. Kiểm tra kết nối mạng.</p>';
+      }
+    };
+    el.addEventListener('click', e => {
+      const b = e.target.closest('[data-city]'); if (!b) return;
+      const i = +b.dataset.city;
+      if (i === -1) {
+        if (!navigator.geolocation) return notify('📍', 'Vị trí', 'Trình duyệt không hỗ trợ định vị');
+        navigator.geolocation.getCurrentPosition(p => { myLoc = { n: 'Vị trí của tôi', la: p.coords.latitude.toFixed(3), lo: p.coords.longitude.toFixed(3) }; S.wcity = -1; saveS(); if (alive) load(); },
+          () => notify('📍', 'Vị trí', 'Không lấy được vị trí — hãy cho phép quyền định vị'), { timeout: 10000 });
+        return;
+      }
+      S.wcity = i; saveS(); load();
+    });
+    if (S.wcity === -1) S.wcity = 0;
+    load();
+    return () => { alive = false; };
+  },
+};
+
+/* ---------- Calendar ---------- */
+let events = store.get('events', {});
+APPS.calendar = {
+  name: 'Lịch', bg: '#fff', glyph: '',
+  render(el) {
+    const today = new Date();
+    let y = today.getFullYear(), m = today.getMonth(), sel = ymd(today);
+    const draw = () => {
+      const first = new Date(y, m, 1), startDow = (first.getDay() + 6) % 7, dim = new Date(y, m + 1, 0).getDate();
+      let cells = '';
+      for (let i = 0; i < startDow; i++) cells += '<span></span>';
+      for (let d = 1; d <= dim; d++) {
+        const k = `${y}-${pad(m + 1)}-${pad(d)}`;
+        cells += `<button class="cal-d ${k === ymd(today) ? 'today' : ''} ${k === sel ? 'sel' : ''} ${events[k]?.length ? 'ev' : ''}" data-d="${k}"><span>${d}</span></button>`;
+      }
+      const evs = events[sel] || [];
+      const [sy, sm, sd] = sel.split('-').map(Number), sdate = new Date(sy, sm - 1, sd);
+      el.innerHTML = `<div class="navbar"><button class="link" data-mv="-1">‹ Trước</button><button class="link" data-today>Hôm nay</button><button class="link" data-mv="1">Sau ›</button></div>
+        <div class="big-title">Tháng ${m + 1}, ${y}</div>
+        <div class="cal-h">${['T2','T3','T4','T5','T6','T7','CN'].map(d => `<span>${d}</span>`).join('')}</div>
+        <div class="cal-g">${cells}</div>
+        <div class="scroll" style="padding-top:10px">
+          <div class="ghead">${DAYS[sdate.getDay()]}, ${sd}/${sm}/${sy}</div>
+          <div class="group">${evs.map((t, i) => `<div class="row"><span class="ricon" style="background:#ff3b30">📌</span><span class="grow">${esc(t)}</span><button class="mini" data-dele="${i}">✕</button></div>`).join('') || '<div class="row sub">Không có sự kiện</div>'}</div>
+          <form class="group" data-addev style="padding:12px;display:flex;gap:8px"><input class="input" name="t" placeholder="Thêm sự kiện…" required maxlength="80"><button class="btn-pri" style="background:#ff3b30">＋</button></form>
+        </div>`;
+    };
+    el.addEventListener('click', e => {
+      const d = e.target.closest('[data-d]'); if (d) { sel = d.dataset.d; return draw(); }
+      const mv = e.target.closest('[data-mv]');
+      if (mv) { m += +mv.dataset.mv; if (m < 0) { m = 11; y--; } if (m > 11) { m = 0; y++; } return draw(); }
+      if (e.target.closest('[data-today]')) { y = today.getFullYear(); m = today.getMonth(); sel = ymd(today); return draw(); }
+      const de = e.target.closest('[data-dele]');
+      if (de) { events[sel].splice(+de.dataset.dele, 1); if (!events[sel].length) delete events[sel]; store.set('events', events); renderWidget(); draw(); }
+    });
+    el.addEventListener('submit', e => {
+      e.preventDefault();
+      const t = e.target.t.value.trim(); if (!t) return;
+      (events[sel] = events[sel] || []).push(t); store.set('events', events); renderWidget(); draw();
+    });
+    draw();
+  },
+};
+
+/* ---------- Photos ---------- */
+let photos = store.get('photos', []);
+function savePhotos() {
+  while (!store.set('photos', photos) && photos.length > 1) {
+    notify('⚠️', 'Ảnh', 'Bộ nhớ trình duyệt đầy — đã xoá ảnh cũ nhất'); photos.pop();
+  }
+}
+function downscale(source, w, h, mirror, max = 960) {
+  const s = Math.min(1, max / Math.max(w, h)), c = document.createElement('canvas');
+  c.width = Math.round(w * s); c.height = Math.round(h * s);
+  const x = c.getContext('2d');
+  if (mirror) { x.translate(c.width, 0); x.scale(-1, 1); }
+  x.drawImage(source, 0, 0, c.width, c.height);
+  return c.toDataURL('image/jpeg', 0.8);
+}
+APPS.photos = {
+  name: 'Ảnh', bg: '#fff', glyph: '🌸',
+  render(el) {
+    const drawGrid = () => {
+      el.innerHTML = `<div class="navbar"><span></span><label class="link" style="cursor:pointer">＋ Thêm ảnh<input type="file" accept="image/*" multiple hidden data-file></label></div>
+        <div class="big-title">Thư viện <span class="sub" style="font-size:15px;font-weight:400">${photos.length} ảnh</span></div>
+        <div class="scroll">${photos.length ? `<div class="pgrid">${photos.map((p, i) => `<img src="${p.src}" data-i="${i}" alt="" loading="lazy">`).join('')}</div>` : '<p class="empty">Chưa có ảnh nào.<br>Chụp bằng 📷 Camera hoặc bấm “＋ Thêm ảnh”.</p>'}</div>`;
+      $('[data-file]', el).onchange = e => {
+        [...e.target.files].forEach(f => {
+          const img = new Image(), url = URL.createObjectURL(f);
+          img.onload = () => { photos.unshift({ id: Date.now() + Math.random(), src: downscale(img, img.naturalWidth, img.naturalHeight, false), t: Date.now() }); URL.revokeObjectURL(url); savePhotos(); drawGrid(); };
+          img.src = url;
+        });
+      };
+    };
+    const view = i => {
+      const p = photos[i]; if (!p) return drawGrid();
+      const v = document.createElement('div'); v.className = 'viewer';
+      v.innerHTML = `<div class="navbar"><button class="link" data-x>‹ Thư viện</button><span class="sub">${fmtWhen(p.t)}</span><span style="width:60px"></span></div><img src="${p.src}" alt="">
+        <div class="tools"><a href="${p.src}" download="iphone-ao-${p.id}.jpg" title="Tải về">⬇️</a><button data-del title="Xoá">🗑️</button></div>`;
+      el.appendChild(v);
+      v.onclick = e => {
+        if (e.target.closest('[data-x]')) v.remove();
+        if (e.target.closest('[data-del]')) { photos.splice(i, 1); savePhotos(); drawGrid(); }
+      };
+    };
+    el.addEventListener('click', e => { const im = e.target.closest('.pgrid img'); if (im) view(+im.dataset.i); });
+    drawGrid();
+  },
+};
+
+/* ---------- Camera ---------- */
+APPS.camera = {
+  name: 'Camera', bg: 'linear-gradient(180deg,#d1d1d6,#8e8e93)', glyph: '📷', darkUI: true,
+  render(el) {
+    el.innerHTML = `<div class="cam-view"><video playsinline autoplay muted></video><div class="cam-msg">Đang mở camera…</div><div class="cam-flash"></div></div>
+      <div class="cam-mode">ẢNH</div>
+      <div class="cam-bar"><button class="cam-thumb" title="Xem ảnh"></button><button class="shutter" title="Chụp"></button><button class="cam-flip" title="Đổi camera">🔄</button></div>`;
+    const video = $('video', el), msg = $('.cam-msg', el), thumb = $('.cam-thumb', el);
+    let stream = null, facing = 'environment', mirror = false, alive = true;
+    const setThumb = () => thumb.style.backgroundImage = photos[0] ? `url("${photos[0].src}")` : '';
+    const stop = () => { stream?.getTracks().forEach(t => t.stop()); stream = null; };
+    const start = async () => {
+      stop();
+      if (!navigator.mediaDevices?.getUserMedia) { msg.textContent = 'Trình duyệt không hỗ trợ camera (cần HTTPS).'; return; }
+      try {
+        const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facing } }, audio: false });
+        if (!alive) { s.getTracks().forEach(t => t.stop()); return; }
+        stream = s; video.srcObject = s; msg.textContent = '';
+        mirror = s.getVideoTracks()[0]?.getSettings().facingMode !== 'environment';
+        video.classList.toggle('mirror', mirror);
+      } catch { msg.innerHTML = '📷<br><br>Không truy cập được camera.<br>Hãy cho phép quyền Camera cho trang web này rồi mở lại app.'; }
+    };
+    $('.shutter', el).onclick = () => {
+      if (!stream || !video.videoWidth) return notify('📷', 'Camera', 'Camera chưa sẵn sàng');
+      photos.unshift({ id: Date.now(), src: downscale(video, video.videoWidth, video.videoHeight, mirror), t: Date.now() });
+      savePhotos(); setThumb();
+      const f = $('.cam-flash', el); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
+      tone(2400, .04, 'square', .15); tone(1200, .07, 'square', .12, .05);
+    };
+    $('.cam-flip', el).onclick = () => { facing = facing === 'user' ? 'environment' : 'user'; start(); };
+    thumb.onclick = () => photos.length && openApp('photos');
+    setThumb(); start();
+    return () => { alive = false; stop(); };
+  },
+};
+
+/* ---------- Piano ---------- */
+APPS.piano = {
+  name: 'Piano', bg: 'linear-gradient(180deg,#ff9f0a,#ff6b00)', glyph: '🎹', darkUI: true,
+  render(el) {
+    let wave = 'triangle';
+    const WHITE = [0, 2, 4, 5, 7, 9, 11], NAMES = ['Đô','Rê','Mi','Fa','Sol','La','Si'];
+    const BLACK = [[1, 1], [3, 2], [6, 4], [8, 5], [10, 6]]; // semitone, position (after white index)
+    const oct = o => `<div class="oct">${WHITE.map((s, i) => `<div class="pk" data-n="${12 * (o + 1) + s}">${NAMES[i]}${o}</div>`).join('')}${BLACK.map(([s, p]) => `<div class="bk" data-n="${12 * (o + 1) + s}" style="left:calc(${p / 7 * 100}% - 4.5%)"></div>`).join('')}</div>`;
+    el.innerHTML = `<div class="navbar"><span class="t" style="padding-left:8px">🎹 Piano</span><div class="seg" style="margin:0;width:210px">${[['triangle','Piano'],['square','Organ'],['sawtooth','Synth']].map(([w, l]) => `<button data-w="${w}" class="${w === wave ? 'on' : ''}">${l}</button>`).join('')}</div></div>
+      <div class="piano-rows">${oct(4)}${oct(5)}</div>
+      <p class="sub" style="text-align:center;margin:-30px 0 34px">Bàn phím máy tính: A W S E D F T G Y H U J K</p>`;
+    const play = n => {
+      const f = 440 * Math.pow(2, (n - 69) / 12);
+      tone(f, 1.4, wave, wave === 'triangle' ? .45 : .18);
+      if (wave === 'triangle') tone(f * 2, .6, 'sine', .08);
+    };
+    const press = k => { play(+k.dataset.n); k.classList.add('on'); setTimeout(() => k.classList.remove('on'), 180); };
+    $('.piano-rows', el).addEventListener('pointerdown', e => { const k = e.target.closest('[data-n]'); if (k) { e.preventDefault(); press(k); } });
+    el.addEventListener('click', e => { const b = e.target.closest('[data-w]'); if (b) { wave = b.dataset.w; $$('[data-w]', el).forEach(x => x.classList.toggle('on', x === b)); } });
+    const MAP = 'awsedftgyhujk';
+    const onKey = e => { if (e.repeat) return; const i = MAP.indexOf(e.key.toLowerCase()); if (i >= 0) { const k = $(`[data-n="${60 + i}"]`, el); if (k) press(k); } };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  },
+};
+
+/* ---------- Safari ---------- */
+APPS.safari = {
+  name: 'Safari', bg: 'linear-gradient(180deg,#fff,#e5e5ea)', glyph: '🧭',
+  render(el) {
+    const FAVS = [
+      ['📚','Wikipedia','https://vi.m.wikipedia.org/wiki/Trang_Ch%C3%ADnh'],
+      ['🌍','Wiki EN','https://en.m.wikipedia.org/'],
+      ['🗺️','Bản đồ','https://www.openstreetmap.org/export/embed.html?bbox=105.78%2C20.99%2C105.90%2C21.06&layer=mapnik'],
+      ['🏠','My Panel','index.html'],
+      ['💳','Nạp tiền','topup.html'],
+      ['☎️','Liên hệ','contact.html'],
+      ['🔎','Tìm Wiki','search:'],
+      ['📄','Example','https://example.com/'],
+    ];
+    const hist = []; let hi = -1;
+    el.innerHTML = `<div class="sf-main"><div class="sf-start scroll"><div class="big-title" style="padding-top:20px">Mục ưa thích</div><div class="favs">${FAVS.map(([i, n, u]) => `<button class="fav" data-u="${esc(u)}"><div>${i}</div>${n}</button>`).join('')}</div>
+      <p class="sf-note">Nhập địa chỉ web hoặc từ khoá để tìm trên Wikipedia.<br>Một số trang (Google, Facebook…) chặn hiển thị trong khung — bấm ↗ để mở ở tab mới.</p></div>
+      <iframe class="sf-frame" hidden referrerpolicy="no-referrer"></iframe></div>
+      <div class="sf-bar"><form class="sf-url"><input class="input" placeholder="Tìm kiếm hoặc nhập tên trang web" inputmode="url" autocomplete="off" style="text-align:center"></form>
+      <div class="sf-tools"><button data-a="back" title="Lùi">‹</button><button data-a="fwd" title="Tiến">›</button><button data-a="ext" title="Mở trong tab mới">↗</button><button data-a="reload" title="Tải lại">↻</button><button data-a="home" title="Trang đầu">⌂</button></div></div>`;
+    const frame = $('.sf-frame', el), start = $('.sf-start', el), inp = $('.sf-url input', el);
+    const show = () => {
+      const u = hist[hi];
+      frame.hidden = !u; start.hidden = !!u;
+      if (u && frame.getAttribute('src') !== u) frame.src = u;
+      inp.value = u ? u.replace(/^https?:\/\//, '') : '';
+      $('[data-a="back"]', el).disabled = hi < 0;
+      $('[data-a="fwd"]', el).disabled = hi >= hist.length - 1;
+      $('[data-a="ext"]', el).disabled = $('[data-a="reload"]', el).disabled = !u;
+    };
+    const go = raw => {
+      raw = raw.trim(); if (!raw) return;
+      let u;
+      if (/^(https?:\/\/|[\w-]+\.html$)/i.test(raw)) u = raw;
+      else if (/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(raw)) u = 'https://' + raw;
+      else u = 'https://vi.m.wikipedia.org/w/index.php?search=' + encodeURIComponent(raw);
+      hist.splice(hi + 1); hist.push(u); hi = hist.length - 1; show();
+    };
+    $('.sf-url', el).onsubmit = e => { e.preventDefault(); inp.blur(); go(inp.value); };
+    inp.onfocus = () => inp.select();
+    el.addEventListener('click', e => {
+      const f = e.target.closest('[data-u]');
+      if (f) { if (f.dataset.u === 'search:') return inp.focus(); return go(f.dataset.u); }
+      const a = e.target.closest('[data-a]')?.dataset.a; if (!a) return;
+      if (a === 'back') { hi--; show(); }
+      else if (a === 'fwd') { hi++; show(); }
+      else if (a === 'home') { hist.splice(hi + 1); hist.push(null); hi = hist.length - 1; show(); }
+      else if (a === 'reload') { const u = hist[hi]; frame.src = 'about:blank'; setTimeout(() => frame.src = u, 30); }
+      else if (a === 'ext') window.open(hist[hi], '_blank', 'noopener');
+    });
+    show();
+  },
+};
+
+/* ---------- Settings ---------- */
+APPS.settings = {
+  name: 'Cài đặt', bg: 'linear-gradient(180deg,#9a9aa0,#6c6c72)', glyph: '⚙️',
+  render(el) {
+    const swc = (k, on) => `<label class="switch"><input type="checkbox" data-sw="${k}" ${on ? 'checked' : ''}><i></i></label>`;
+    const usage = () => { let n = 0; try { for (const k in localStorage) if (k.startsWith('iph_')) n += (localStorage.getItem(k) || '').length; } catch {} return (n * 2 / 1024 / 1024).toFixed(2) + ' MB'; };
+    const draw = () => {
+      el.innerHTML = `<div class="navbar"></div><div class="big-title">Cài đặt</div><div class="scroll">
+        <div class="group"><div class="row"><div class="av" style="width:58px;height:58px;font-size:24px">${esc((S.name.replace(/^iPhone của\s*/i, '') || 'U')[0].toUpperCase())}</div><div class="grow"><input class="input" data-name value="${esc(S.name)}" maxlength="40" style="background:none;padding:4px 0;font-size:20px;font-weight:600"><div class="sub">Tên thiết bị · chạm để đổi</div></div></div></div>
+        <div class="group">
+          <div class="row"><span class="ricon" style="background:#ff9500">✈️</span><span class="grow">Chế độ máy bay</span>${swc('airplane', S.airplane)}</div>
+          <div class="row"><span class="ricon" style="background:#007aff">📶</span><span class="grow">Wi‑Fi<div class="sub">${S.wifi ? 'Nha_Cong_5G' : 'Tắt'}</div></span>${swc('wifi', S.wifi)}</div>
+          <div class="row"><span class="ricon" style="background:#007aff">🅱️</span><span class="grow">Bluetooth</span>${swc('bt', S.bt)}</div>
+        </div>
+        <div class="group">
+          <div class="row"><span class="ricon" style="background:#1c1c1e">🌓</span><span class="grow">Chế độ tối</span>${swc('dark', S.dark)}</div>
+          <div class="row"><span class="ricon" style="background:#007aff">☀️</span><input type="range" min="0.1" max="1" step="0.01" value="${S.brightness}" data-range="brightness"></div>
+          <div class="row"><span class="ricon" style="background:#ff2d55">🔊</span><input type="range" min="0" max="1" step="0.0625" value="${S.volume}" data-range="volume"></div>
+        </div>
+        <div class="ghead">Hình nền</div>
+        <div class="group"><div class="wall-pick">${WALLS.map((w, i) => `<button data-wall="${i}" class="${S.wall === i ? 'on' : ''}" style="background:${w}"></button>`).join('')}</div></div>
+        <div class="ghead">Mật mã</div>
+        <div class="group"><form class="row" data-passform><span class="ricon" style="background:#ff3b30">🔐</span><input class="input" name="pc" type="password" inputmode="numeric" pattern="\\d{4}" maxlength="4" placeholder="${S.passcode ? 'Đã bật · nhập mã mới' : '4 chữ số'}" style="flex:1"><button class="btn-pri" style="padding:9px 12px">Lưu</button>${S.passcode ? '<button type="button" class="btn-pri" data-nopass style="padding:9px 12px;background:#8e8e93">Tắt</button>' : ''}</form></div>
+        <div class="ghead">Giới thiệu</div>
+        <div class="group">
+          <div class="row"><span class="grow">Kiểu máy</span><span class="sub">iPhone ảo (Web)</span></div>
+          <div class="row"><span class="grow">Phiên bản</span><span class="sub">iOS Web 1.0</span></div>
+          <div class="row"><span class="grow">Ảnh · Ghi chú · Liên hệ</span><span class="sub">${photos.length} · ${notes.length} · ${contacts.length}</span></div>
+          <div class="row"><span class="grow">Dung lượng đã dùng</span><span class="sub">${usage()}</span></div>
+          <div class="row"><span class="grow">Pin</span><span class="sub">${Math.round(batt.level * 100)}%${batt.charging ? ' ⚡' : ''}</span></div>
+        </div>
+        <div class="group"><div class="row danger" data-reset>Xoá tất cả nội dung và cài đặt</div></div>
+      </div>`;
+    };
+    el.addEventListener('change', e => {
+      const s = e.target.dataset.sw;
+      if (s) {
+        S[s] = e.target.checked;
+        if (s === 'airplane' && S.airplane) { S.wifi = S.bt = false; }
+        saveS(); applySettings(); draw();
+      }
+      if (e.target.matches('[data-name]')) { S.name = e.target.value.trim() || 'iPhone'; saveS(); applySettings(); renderWidget(); }
+    });
+    el.addEventListener('input', e => {
+      const r = e.target.dataset.range;
+      if (r) { S[r] = +e.target.value; saveS(); applySettings(); }
+    });
+    el.addEventListener('click', e => {
+      const w = e.target.closest('[data-wall]');
+      if (w) { S.wall = +w.dataset.wall; saveS(); applySettings(); $$('[data-wall]', el).forEach(b => b.classList.toggle('on', b === w)); }
+      if (e.target.closest('[data-nopass]')) { S.passcode = ''; saveS(); draw(); notify('🔐', 'Mật mã', 'Đã tắt mật mã'); }
+      if (e.target.closest('[data-reset]') && confirm('Xoá toàn bộ dữ liệu của iPhone ảo (ảnh, ghi chú, tin nhắn, cài đặt)?')) {
+        try { Object.keys(localStorage).filter(k => k.startsWith('iph_')).forEach(k => localStorage.removeItem(k)); } catch {}
+        location.reload();
+      }
+    });
+    el.addEventListener('submit', e => {
+      e.preventDefault();
+      const v = e.target.pc.value;
+      if (!/^\d{4}$/.test(v)) return notify('🔐', 'Mật mã', 'Mật mã phải gồm đúng 4 chữ số');
+      S.passcode = v; saveS(); draw(); notify('🔐', 'Mật mã', 'Đã đặt mật mã. Khoá máy để thử!');
+    });
+    draw();
+  },
+};
+
+/* ================= fit device to window ================= */
+function fit() {
+  if (innerWidth <= 520) { device.style.transform = ''; return; }
+  const s = Math.min((innerHeight - 60) / 872, (innerWidth - 40) / 418, 1);
+  device.style.transform = `scale(${s})`;
+}
+addEventListener('resize', fit);
+
+/* ================= boot ================= */
+setVol(S.volume, false);
+applySettings();
+renderHome();
+lockPhone();
+fit();
+setInterval(tick, 1000);
+})();
+</script>
+</body>
+</html>
