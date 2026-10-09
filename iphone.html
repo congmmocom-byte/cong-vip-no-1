@@ -324,8 +324,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .fav div{width:62px;height:62px;border-radius:14px;background:var(--card);display:grid;place-items:center;font-size:30px;box-shadow:0 1px 3px rgba(0,0,0,.1)}
 .sf-bar{background:var(--card);border-top:.5px solid var(--sep);padding:8px 12px 28px;flex:none}
 .sf-tools{display:flex;justify-content:space-around;margin-top:8px}
-.sf-tools button{background:none;border:0;color:var(--accent);font-size:24px;cursor:pointer;width:44px}
-.sf-tools button:disabled{opacity:.3}
+.sf-tools button,.sf-tools a{background:none;border:0;color:var(--accent);font-size:24px;cursor:pointer;width:44px;text-align:center;text-decoration:none}
+.sf-tools button:disabled,.sf-tools a:not([href]){opacity:.3;pointer-events:none}
 .sf-note{color:var(--muted);font-size:12px;padding:20px 20px 0;text-align:center}
 
 /* settings */
@@ -1316,17 +1316,26 @@ APPS.camera = {
     const stop = () => { stream?.getTracks().forEach(t => t.stop()); stream = null; };
     const start = async () => {
       stop();
-      if (!navigator.mediaDevices?.getUserMedia) { msg.textContent = 'Trình duyệt không hỗ trợ camera (cần HTTPS).'; return; }
+      if (!navigator.mediaDevices?.getUserMedia) return fallback();
       try {
         const s = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: facing } }, audio: false });
         if (!alive) { s.getTracks().forEach(t => t.stop()); return; }
         stream = s; video.srcObject = s; msg.textContent = '';
         mirror = s.getVideoTracks()[0]?.getSettings().facingMode !== 'environment';
         video.classList.toggle('mirror', mirror);
-      } catch { msg.innerHTML = '📷<br><br>Không truy cập được camera.<br>Hãy cho phép quyền Camera cho trang web này rồi mở lại app.'; }
+      } catch { fallback(); }
+    };
+    const fallback = () => {
+      msg.innerHTML = `<div>📷<br><br>Không mở được camera trực tiếp ở đây.<br><br><label class="btn-pri" style="display:inline-block">Chụp / chọn ảnh<input type="file" accept="image/*" capture="environment" hidden></label></div>`;
+      $('input', msg).onchange = e => {
+        const f = e.target.files[0]; if (!f) return;
+        const img = new Image(), url = URL.createObjectURL(f);
+        img.onload = () => { photos.unshift({ id: Date.now(), src: downscale(img, img.naturalWidth, img.naturalHeight, false), t: Date.now() }); URL.revokeObjectURL(url); savePhotos(); setThumb(); notify('📷', 'Camera', 'Đã lưu ảnh vào Thư viện', () => openApp('photos')); };
+        img.src = url;
+      };
     };
     $('.shutter', el).onclick = () => {
-      if (!stream || !video.videoWidth) return notify('📷', 'Camera', 'Camera chưa sẵn sàng');
+      if (!stream || !video.videoWidth) { const i = $('.cam-msg input', el); return i ? i.click() : notify('📷', 'Camera', 'Camera chưa sẵn sàng'); }
       photos.unshift({ id: Date.now(), src: downscale(video, video.videoWidth, video.videoHeight, mirror), t: Date.now() });
       savePhotos(); setThumb();
       const f = $('.cam-flash', el); f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
@@ -1384,7 +1393,7 @@ APPS.safari = {
       <p class="sf-note">Nhập địa chỉ web hoặc từ khoá để tìm trên Wikipedia.<br>Một số trang (Google, Facebook…) chặn hiển thị trong khung — bấm ↗ để mở ở tab mới.</p></div>
       <iframe class="sf-frame" hidden referrerpolicy="no-referrer"></iframe></div>
       <div class="sf-bar"><form class="sf-url"><input class="input" placeholder="Tìm kiếm hoặc nhập tên trang web" inputmode="url" autocomplete="off" style="text-align:center"></form>
-      <div class="sf-tools"><button data-a="back" title="Lùi">‹</button><button data-a="fwd" title="Tiến">›</button><button data-a="ext" title="Mở trong tab mới">↗</button><button data-a="reload" title="Tải lại">↻</button><button data-a="home" title="Trang đầu">⌂</button></div></div>`;
+      <div class="sf-tools"><button data-a="back" title="Lùi">‹</button><button data-a="fwd" title="Tiến">›</button><a data-a="ext" title="Mở trong tab mới" target="_blank" rel="noopener">↗</a><button data-a="reload" title="Tải lại">↻</button><button data-a="home" title="Trang đầu">⌂</button></div></div>`;
     const frame = $('.sf-frame', el), start = $('.sf-start', el), inp = $('.sf-url input', el);
     const show = () => {
       const u = hist[hi];
@@ -1393,7 +1402,9 @@ APPS.safari = {
       inp.value = u ? u.replace(/^https?:\/\//, '') : '';
       $('[data-a="back"]', el).disabled = hi < 0;
       $('[data-a="fwd"]', el).disabled = hi >= hist.length - 1;
-      $('[data-a="ext"]', el).disabled = $('[data-a="reload"]', el).disabled = !u;
+      $('[data-a="reload"]', el).disabled = !u;
+      const ext = $('[data-a="ext"]', el);
+      if (u) ext.href = new URL(u, location.href).href; else ext.removeAttribute('href');
     };
     const go = raw => {
       raw = raw.trim(); if (!raw) return;
@@ -1413,7 +1424,6 @@ APPS.safari = {
       else if (a === 'fwd') { hi++; show(); }
       else if (a === 'home') { hist.splice(hi + 1); hist.push(null); hi = hist.length - 1; show(); }
       else if (a === 'reload') { const u = hist[hi]; frame.src = 'about:blank'; setTimeout(() => frame.src = u, 30); }
-      else if (a === 'ext') window.open(hist[hi], '_blank', 'noopener');
     });
     show();
   },
@@ -1470,7 +1480,9 @@ APPS.settings = {
       const w = e.target.closest('[data-wall]');
       if (w) { S.wall = +w.dataset.wall; saveS(); applySettings(); $$('[data-wall]', el).forEach(b => b.classList.toggle('on', b === w)); }
       if (e.target.closest('[data-nopass]')) { S.passcode = ''; saveS(); draw(); notify('🔐', 'Mật mã', 'Đã tắt mật mã'); }
-      if (e.target.closest('[data-reset]') && confirm('Xoá toàn bộ dữ liệu của iPhone ảo (ảnh, ghi chú, tin nhắn, cài đặt)?')) {
+      const rs = e.target.closest('[data-reset]');
+      if (rs && !rs.dataset.armed) { rs.dataset.armed = 1; rs.textContent = 'Chạm lần nữa để xoá vĩnh viễn'; setTimeout(() => { delete rs.dataset.armed; rs.textContent = 'Xoá tất cả nội dung và cài đặt'; }, 4000); return; }
+      if (rs) {
         try { Object.keys(localStorage).filter(k => k.startsWith('iph_')).forEach(k => localStorage.removeItem(k)); } catch {}
         location.reload();
       }
